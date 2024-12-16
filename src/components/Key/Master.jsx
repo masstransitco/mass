@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import "./Master.css"; // Include modal styling
+import { FaLock, FaUnlock, FaTimes } from "react-icons/fa"; // Import icons
+import "./Master.css";
 
 const LockUnlockModal = ({ isOpen, onClose }) => {
   const [vehicles, setVehicles] = useState([]);
@@ -13,11 +14,10 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
     "fd58cd26fefc8c2b2ba1f7f52b33221a65f645790a43ff9b8da35db7da6e1f33";
   const encodedAuth = btoa(`${API_USERNAME}:${API_PASSWORD}`);
 
-  // Fetch the list of vehicles
   useEffect(() => {
     const fetchVehicles = async () => {
       setIsLoading(true);
-      setStatusMessage(""); // Reset status message
+      setStatusMessage("");
       try {
         const response = await fetch(`${API_BASE_URL}/vehicles`, {
           headers: {
@@ -27,7 +27,7 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
         });
         if (response.ok) {
           const data = await response.json();
-          setVehicles(data.data || []); // Assuming the vehicle list is in `data.data`
+          setVehicles(data.data || []);
         } else {
           const errorData = await response.json();
           setStatusMessage(
@@ -52,14 +52,14 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
       return;
     }
 
-    const url = `${API_BASE_URL}/vehicles/${selectedVehicle}/central-locking`; // Use central-locking endpoint
+    const url = `${API_BASE_URL}/vehicles/${selectedVehicle}/central-locking`;
     const headers = {
       "Content-Type": "application/json",
       Authorization: `Basic ${encodedAuth}`,
     };
 
     const body = JSON.stringify({
-      command: command.toUpperCase(), // Use "LOCK" or "UNLOCK"
+      command: command.toUpperCase(),
     });
 
     try {
@@ -89,7 +89,7 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
     <div className="modal-overlay">
       <div className="modal-content">
         <button className="close-button" onClick={onClose}>
-          &times;
+          <FaTimes />
         </button>
         <h2>Lock/Unlock Vehicle</h2>
 
@@ -110,8 +110,12 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
             </select>
 
             <div className="modal-buttons">
-              <button onClick={() => handleCommand("LOCK")}>Lock</button>
-              <button onClick={() => handleCommand("UNLOCK")}>Unlock</button>
+              <button onClick={() => handleCommand("LOCK")}>
+                <FaLock /> Lock
+              </button>
+              <button onClick={() => handleCommand("UNLOCK")}>
+                <FaUnlock /> Unlock
+              </button>
             </div>
           </>
         )}
