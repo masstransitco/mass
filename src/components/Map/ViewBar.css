@@ -40,13 +40,15 @@
   margin-top: 5px;
 }
 
-.departure-info, .arrival-info {
+.departure-info,
+.arrival-info {
   display: flex;
   align-items: center;
   margin-bottom: 5px;
 }
 
-.departure-info span, .arrival-info span {
+.departure-info span,
+.arrival-info span {
   margin-right: 10px;
   font-weight: bold;
 }
@@ -73,7 +75,8 @@
   gap: 10px;
 }
 
-.choose-destination-button, .view-all-districts-button {
+.choose-destination-button,
+.view-all-districts-button {
   background: none;
   border: none;
   cursor: pointer;
@@ -83,7 +86,8 @@
   font-weight: 300;
 }
 
-.choose-destination-button:hover, .view-all-districts-button:hover {
+.choose-destination-button:hover,
+.view-all-districts-button:hover {
   color: #195db7;
 }
 

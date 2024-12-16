@@ -14,7 +14,8 @@ const DistrictMarkers = ({ districts, onDistrictClick }) => {
             <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#000" font-family="Helvetica" font-size="14">${district.name}</text>
           </svg>
         `;
-        const iconUrl = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+        const iconUrl =
+          "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
 
         return (
           <Marker
@@ -23,7 +24,7 @@ const DistrictMarkers = ({ districts, onDistrictClick }) => {
             onClick={() => onDistrictClick(district)}
             icon={{
               url: iconUrl,
-              scaledSize: { width: 120, height: 40 }
+              scaledSize: { width: 120, height: 40 },
             }}
           />
         );

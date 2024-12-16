@@ -166,21 +166,24 @@ const MapContainer = ({ onStationSelect, onStationDeselect }) => {
     return PEAK_HOURS.some((p) => hour >= p.start && hour < p.end);
   }, []);
 
-  const calculateFare = useCallback((distance, durationInSeconds) => {
-    const baseTaxi = 24;
-    const extraMeters = Math.max(0, distance - 2000);
-    const increments = Math.floor(extraMeters / 200) * 1;
-    const taxiFareEstimate = baseTaxi + increments;
+  const calculateFare = useCallback(
+    (distance, durationInSeconds) => {
+      const baseTaxi = 24;
+      const extraMeters = Math.max(0, distance - 2000);
+      const increments = Math.floor(extraMeters / 200) * 1;
+      const taxiFareEstimate = baseTaxi + increments;
 
-    const peak = isPeakHour(new Date());
-    const startingFare = peak ? 65 : 35;
-    const ourFare = Math.max(taxiFareEstimate * 0.5, startingFare);
-    const distanceKm = (distance / 1000).toFixed(2);
-    const hrs = Math.floor(durationInSeconds / 3600);
-    const mins = Math.floor((durationInSeconds % 3600) / 60);
-    const estTime = `${hrs > 0 ? hrs + " hr " : ""}${mins} mins`;
-    return { ourFare, taxiFareEstimate, distanceKm, estTime };
-  }, [isPeakHour]);
+      const peak = isPeakHour(new Date());
+      const startingFare = peak ? 65 : 35;
+      const ourFare = Math.max(taxiFareEstimate * 0.5, startingFare);
+      const distanceKm = (distance / 1000).toFixed(2);
+      const hrs = Math.floor(durationInSeconds / 3600);
+      const mins = Math.floor((durationInSeconds % 3600) / 60);
+      const estTime = `${hrs > 0 ? hrs + " hr " : ""}${mins} mins`;
+      return { ourFare, taxiFareEstimate, distanceKm, estTime };
+    },
+    [isPeakHour]
+  );
 
   const navigateToView = useCallback(
     (view) => {
@@ -246,9 +249,14 @@ const MapContainer = ({ onStationSelect, onStationDeselect }) => {
           setDirections(result);
           const route = result.routes[0]?.legs[0];
           if (!route) return;
-          const fare = calculateFare(route.distance.value, route.duration.value);
+          const fare = calculateFare(
+            route.distance.value,
+            route.duration.value
+          );
           setFareInfo(fare);
-          setViewBarText(`Distance: ${fare.distanceKm} km | Est Time: ${fare.estTime}`);
+          setViewBarText(
+            `Distance: ${fare.distanceKm} km | Est Time: ${fare.estTime}`
+          );
 
           navigateToView({
             name: "DriveView",
@@ -261,7 +269,13 @@ const MapContainer = ({ onStationSelect, onStationDeselect }) => {
         }
       }
     );
-  }, [map, departureStation, destinationStation, calculateFare, navigateToView]);
+  }, [
+    map,
+    departureStation,
+    destinationStation,
+    calculateFare,
+    navigateToView,
+  ]);
 
   const handleHomeClick = useCallback(() => {
     navigateToView(CITY_VIEW);
@@ -430,14 +444,17 @@ const MapContainer = ({ onStationSelect, onStationDeselect }) => {
     }
   }, [userState, departureStation, destinationStation, baseFilteredStations]);
 
-  const directionsOptions = useMemo(() => ({
-    suppressMarkers: true,
-    polylineOptions: {
-      strokeColor: "#276ef1",
-      strokeOpacity: 0.8,
-      strokeWeight: 4,
-    },
-  }), []);
+  const directionsOptions = useMemo(
+    () => ({
+      suppressMarkers: true,
+      polylineOptions: {
+        strokeColor: "#276ef1",
+        strokeOpacity: 0.8,
+        strokeWeight: 4,
+      },
+    }),
+    []
+  );
 
   if (loadError) {
     return (
@@ -461,7 +478,10 @@ const MapContainer = ({ onStationSelect, onStationDeselect }) => {
   }
 
   return (
-    <div className="map-container" style={{ position: "relative", width: "100%", height: "100vh" }}>
+    <div
+      className="map-container"
+      style={{ position: "relative", width: "100%", height: "100vh" }}
+    >
       <ViewBar
         departure={departureStation?.place}
         arrival={destinationStation?.place}
@@ -519,7 +539,10 @@ const MapContainer = ({ onStationSelect, onStationDeselect }) => {
           />
         )}
 
-        {(currentView.name === "MeView" || currentView.name === "DistrictView" || currentView.name === "StationView" || currentView.name === "DriveView") && (
+        {(currentView.name === "MeView" ||
+          currentView.name === "DistrictView" ||
+          currentView.name === "StationView" ||
+          currentView.name === "DriveView") && (
           <StationMarkers
             stations={displayedStations}
             onStationClick={handleStationSelection}
