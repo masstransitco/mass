@@ -1,120 +1,101 @@
-/* src/components/Map/ViewBar.css */
-
-/* ViewBar Container */
 .view-bar {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  flex-direction: row; /* Changed from column to row */
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
+  background-color: rgba(255, 255, 255, 0.95);
   padding: 10px 20px;
-  background-color: #1a1a1a; /* Dark Theme Background */
-  position: absolute; /* Position at the top */
-  top: 0;
-  left: 0;
-  z-index: 1000; /* Ensure it stays on top */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  font-family: Helvetica, Arial, sans-serif; /* Helvetica Font */
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  max-width: 90%;
+  font-family: Helvetica, sans-serif;
 }
 
-/* Top Buttons Group */
-.top-buttons-group {
+.view-bar .locate-me-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2em;
+  margin-right: 10px;
+}
+
+.view-bar-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.view-bar-text h2 {
+  margin: 0;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.view-bar-info {
+  display: flex;
+  flex-direction: column;
+  margin-top: 5px;
+}
+
+.departure-info, .arrival-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.departure-info span, .arrival-info span {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.clear-button {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  width: 80px;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.clear-button:hover {
+  background-color: #c0392b;
+}
+
+.view-bar-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-/* View Title */
-.view-title {
-  font-size: 1.4rem;
-  font-weight: bold;
-  text-align: center;
-  flex-grow: 1; /* Allow title to take up remaining space */
-  color: #ffffff; /* White text for dark background */
-}
-
-/* Buttons Group */
-.buttons-group {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-/* Selection Buttons Container */
-.selection-buttons-container {
-  display: flex;
-  flex-direction: column; /* Stack vertically */
-  align-items: flex-end; /* Align to the end to maintain layout */
-  gap: 5px;
-}
-
-/* Clear Button */
-.clear-button {
+.choose-destination-button, .view-all-districts-button {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1.2rem;
-  color: #ffffff; /* White color */
-  transition: color 0.3s ease;
+  font-size: 0.9em;
+  color: #2171ec;
+  text-decoration: underline;
+  font-weight: 300;
 }
 
-.clear-button:hover {
-  color: #1a5bb8; /* Hover color */
+.choose-destination-button:hover, .view-all-districts-button:hover {
+  color: #195db7;
 }
 
-/* Selection Bar */
-.selection-bar {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background-color: rgba(
-    255,
-    255,
-    255,
-    0.1
-  ); /* Slightly transparent for dark theme */
-  padding: 5px 10px;
-  border-radius: 4px;
-}
-
-/* Selection Text */
-.selection-text {
-  font-size: 1rem;
-  color: #ffffff; /* White text */
-}
-
-/* Choose Destination Button */
-.choose-destination-button {
-  padding: 12px 20px;
-  background-color: #1e3a8a; /* Uber Blue */
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  font-family: Helvetica, Arial, sans-serif; /* Helvetica Font */
-  transition: background-color 0.3s ease;
-}
-
-.choose-destination-button:hover {
-  background-color: #1a5bb8; /* Darker Uber Blue on hover */
-}
-
-/* Optional: Responsive Design for Mobile Devices */
-@media (max-width: 600px) {
+/* Responsive adjustments */
+@media (max-width: 768px) {
   .view-bar {
-    padding: 8px 12px;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .view-title {
-    font-size: 1.2rem;
-  }
-
-  .choose-destination-button {
-    padding: 10px 16px;
-    font-size: 0.9rem;
+  .view-bar-actions {
+    margin-top: 10px;
+    align-self: flex-end;
   }
 }

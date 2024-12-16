@@ -1,17 +1,3 @@
-// src/components/Map/ViewBar.jsx
-
-import React from "react";
-import "./ViewBar.css"; // Ensure styles are correctly applied
-import LocateMe from "./LocateMe"; // Import the LocateMe component
-import HomeButton from "./HomeButton"; // Import HomeButton component
-import ChooseDestinationButton from "./ChooseDestinationButton"; // Import the new component
-
-const USER_STATES = {
-  SELECTING_DEPARTURE: "SelectingDeparture",
-  SELECTING_ARRIVAL: "SelectingArrival",
-  DISPLAY_FARE: "DisplayFare",
-};
-
 const ViewBar = ({
   departure,
   arrival,
@@ -21,81 +7,91 @@ const ViewBar = ({
   onClearArrival,
   showChooseDestination,
   onChooseDestination,
-  onHome, // Handler for HomeButton
-  isCityView, // Determines if HomeButton should be displayed
-  userState, // Current user state
-  isMeView, // Determines if LocateMe should be displayed
-  distanceKm, // Distance in km
-  estTime, // Estimated time
+  onHome,
+  isCityView,
+  isMeView,
 }) => {
-  // Determine visibility of buttons based on userState and view
-  const showLocateMe =
-    !isMeView && userState === USER_STATES.SELECTING_DEPARTURE;
-
-  const showHomeButton =
-    !isCityView && userState === USER_STATES.SELECTING_DEPARTURE;
-
-  // Determine if dynamic title should be shown
-  const dynamicTitle =
-    userState === USER_STATES.DISPLAY_FARE && distanceKm && estTime;
-
   return (
     <div className="view-bar">
-      {/* Top Buttons Group: LocateMe and Home Buttons */}
-      <div className="top-buttons-group">
-        {showLocateMe && <LocateMe onLocateMe={onLocateMe} />}
-        {showHomeButton && <HomeButton onClick={onHome} />}
-      </div>
+      {!isMeView && (
+        <button
+          onClick={onLocateMe}
+          className="locate-me-button"
+          aria-label="Locate Me"
+        >
+          <FaLocationArrow />
+        </button>
+      )}
 
-      {/* View Title */}
-      <div className="view-title">
-        {dynamicTitle
-          ? `Distance: ${distanceKm} km, Est Time: ${estTime}`
-          : viewBarText}
-      </div>
-
-      {/* Buttons Group: Clear Buttons and Choose Destination */}
-      <div className="buttons-group">
-        {/* Selection Buttons Container */}
-        <div className="selection-buttons-container">
-          {/* Clear Departure Button */}
+      <div className="view-bar-center">
+        <div className="view-bar-text">
+          <h2>{viewBarText}</h2>
+        </div>
+        <div className="view-bar-info">
           {departure && (
-            <div className="selection-bar">
+            <div className="departure-info">
+              <span>Departure: {departure}</span>
               <button
-                className="clear-button"
                 onClick={onClearDeparture}
-                title="Clear Departure"
+                className="clear-button"
                 aria-label="Clear Departure"
               >
-                ✕
+                Clear
               </button>
-              <span className="selection-text">Departure: {departure}</span>
             </div>
           )}
-
-          {/* Clear Arrival Button */}
           {arrival && (
-            <div className="selection-bar">
+            <div className="arrival-info">
+              <span>Arrival: {arrival}</span>
               <button
-                className="clear-button"
                 onClick={onClearArrival}
-                title="Clear Arrival"
+                className="clear-button"
                 aria-label="Clear Arrival"
               >
-                ✕
+                Clear
               </button>
-              <span className="selection-text">Arrival: {arrival}</span>
             </div>
           )}
         </div>
+      </div>
 
-        {/* Choose Destination Button */}
+      <div className="view-bar-actions">
         {showChooseDestination && (
-          <ChooseDestinationButton onChooseDestination={onChooseDestination} />
+          <button
+            onClick={onChooseDestination}
+            className="choose-destination-button"
+            aria-label="Choose Destination"
+          >
+            Choose Destination
+          </button>
+        )}
+
+        {!isCityView && (
+          <button
+            onClick={onHome}
+            className="view-all-districts-button"
+            aria-label="View all districts"
+          >
+            View all districts
+          </button>
         )}
       </div>
     </div>
   );
 };
 
-export default React.memo(ViewBar);
+ViewBar.propTypes = {
+  departure: PropTypes.string,
+  arrival: PropTypes.string,
+  onLocateMe: PropTypes.func.isRequired,
+  viewBarText: PropTypes.string.isRequired,
+  onClearDeparture: PropTypes.func.isRequired,
+  onClearArrival: PropTypes.func.isRequired,
+  showChooseDestination: PropTypes.bool.isRequired,
+  onChooseDestination: PropTypes.func.isRequired,
+  onHome: PropTypes.func.isRequired,
+  isCityView: PropTypes.bool.isRequired,
+  isMeView: PropTypes.bool.isRequired,
+};
+
+export default ViewBar;
