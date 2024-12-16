@@ -9,10 +9,7 @@ import {
 } from "@react-google-maps/api";
 
 import ViewBar from "./ViewBar";
-// Removed unused import: ChooseDestinationButton
 import MotionMenu from "../Menu/MotionMenu";
-import FareInfoWindow from "./FareInfoWindow";
-import RouteInfoWindow from "./RouteInfoWindow";
 import UserOverlay from "./UserOverlay";
 import UserCircles from "./UserCircles";
 import DistrictMarkers from "./DistrictMarkers";
@@ -24,7 +21,7 @@ import useMapGestures from "../../hooks/useMapGestures";
 import "./MapContainer.css";
 
 // **Note:** Use environment variables for API keys in production.
-// Keeping the API key hardcoded as per your request.
+// The API key below is an example placeholder.
 const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours";
 
 // MapId for custom styling
@@ -49,9 +46,14 @@ const CITY_VIEW = {
 };
 
 const STATION_VIEW_ZOOM = 16; // Defined zoom level for StationView
-
-// Circle distances in meters
 const CIRCLE_DISTANCES = [500, 1000]; // meters
+
+// User States
+const USER_STATES = {
+  SELECTING_DEPARTURE: "SelectingDeparture",
+  SELECTING_ARRIVAL: "SelectingArrival",
+  DISPLAY_FARE: "DisplayFare",
+};
 
 // Peak hours assumption
 const PEAK_HOURS = [
@@ -59,18 +61,14 @@ const PEAK_HOURS = [
   { start: 18, end: 20 },
 ];
 
-// Base map styles (if any)
+// Base styles
 const BASE_STYLES = [];
-
-// Styles for StationView to hide almost everything except the selected station
 const STATION_VIEW_STYLES = [
   {
     featureType: "all",
     stylers: [{ visibility: "off" }],
   },
 ];
-
-// Styles for RouteView to dim buildings and hide unnecessary info
 const ROUTE_VIEW_STYLES = [
   {
     featureType: "poi",
@@ -99,15 +97,7 @@ const ROUTE_VIEW_STYLES = [
   },
 ];
 
-// **User States**
-const USER_STATES = {
-  SELECTING_DEPARTURE: "SelectingDeparture",
-  SELECTING_ARRIVAL: "SelectingArrival",
-  DISPLAY_FARE: "DisplayFare",
-};
-
-const MapContainer = () => {
-  // State Hooks
+const MapContainer = ({ onStationSelect, onStationDeselect }) => {
   const [map, setMap] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [directions, setDirections] = useState(null);
@@ -117,18 +107,16 @@ const MapContainer = () => {
   const [destinationStation, setDestinationStation] = useState(null);
   const [fareInfo, setFareInfo] = useState(null);
   const [userState, setUserState] = useState(USER_STATES.SELECTING_DEPARTURE);
-  const [viewBarText, setViewBarText] = useState("Stations near me"); // Updated to "Stations near me"
-  const [routeInfo, setRouteInfo] = useState(null);
+  const [viewBarText, setViewBarText] = useState("Stations near me");
+  // routeInfo removed as we no longer show RouteInfoWindow
 
   const currentView = viewHistory[viewHistory.length - 1];
 
-  // Load Google Maps API
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     libraries,
   });
 
-  // **Fetch GeoJSON Data**
   const {
     data: stationsData,
     loading: stationsLoading,
@@ -141,9 +129,10 @@ const MapContainer = () => {
     error: districtsError,
   } = useFetchGeoJSON("/districts.geojson");
 
-  // **Parse and Transform Stations Data**
+  // Parse Stations
   const stations = useMemo(() => {
-    return stationsData.map((feature) => ({
+    if (!stationsData?.features) return [];
+    return stationsData.features.map((feature) => ({
       id: feature.id,
       place: feature.properties.Place,
       address: feature.properties.Address,
@@ -155,9 +144,10 @@ const MapContainer = () => {
     }));
   }, [stationsData]);
 
-  // **Parse and Transform Districts Data**
+  // Parse Districts
   const districts = useMemo(() => {
-    return districtsData.map((feature) => ({
+    if (!districtsData?.features) return [];
+    return districtsData.features.map((feature) => ({
       id: feature.id,
       name: feature.properties.District,
       position: {
@@ -168,22 +158,40 @@ const MapContainer = () => {
     }));
   }, [districtsData]);
 
-  // **Apply Gesture Handling Hook**
   useMapGestures(map);
 
-  // **Navigate to a given view**
+  // Helper functions
+  const isPeakHour = useCallback((date) => {
+    const hour = date.getHours();
+    return PEAK_HOURS.some((p) => hour >= p.start && hour < p.end);
+  }, []);
+
+  const calculateFare = useCallback((distance, durationInSeconds) => {
+    const baseTaxi = 24;
+    const extraMeters = Math.max(0, distance - 2000);
+    const increments = Math.floor(extraMeters / 200) * 1;
+    const taxiFareEstimate = baseTaxi + increments;
+
+    const peak = isPeakHour(new Date());
+    const startingFare = peak ? 65 : 35;
+    const ourFare = Math.max(taxiFareEstimate * 0.5, startingFare);
+    const distanceKm = (distance / 1000).toFixed(2);
+    const hrs = Math.floor(durationInSeconds / 3600);
+    const mins = Math.floor((durationInSeconds % 3600) / 60);
+    const estTime = `${hrs > 0 ? hrs + " hr " : ""}${mins} mins`;
+    return { ourFare, taxiFareEstimate, distanceKm, estTime };
+  }, [isPeakHour]);
+
   const navigateToView = useCallback(
     (view) => {
       if (!map) return;
-
-      setViewHistory((prevHistory) => [...prevHistory, view]);
-
+      setViewHistory((prev) => [...prev, view]);
       map.panTo(view.center);
       map.setZoom(view.zoom);
       if (view.tilt !== undefined) map.setTilt(view.tilt);
       if (view.heading !== undefined) map.setHeading(view.heading);
 
-      // Apply styles based on the view
+      // Set styles based on view
       if (view.name === "RouteView") {
         map.setOptions({ styles: ROUTE_VIEW_STYLES });
       } else if (view.name === "StationView") {
@@ -192,168 +200,138 @@ const MapContainer = () => {
         map.setOptions({ styles: BASE_STYLES });
       }
 
-      // Update ViewBar text based on view
-      if (view.name === "CityView") {
-        setViewBarText("Hong Kong");
-      } else if (view.name === "DistrictView") {
-        setViewBarText(view.districtName || "District");
-      } else if (view.name === "StationView") {
-        setViewBarText(view.districtName || "Station"); // Updated to display district name
-      } else if (view.name === "MeView") {
-        setViewBarText("Stations near me"); // Updated to "Stations near me"
-      } else if (view.name === "DriveView") {
-        // This will be updated later with distance and estimated time
+      // Update ViewBar text
+      switch (view.name) {
+        case "CityView":
+          setViewBarText("Hong Kong");
+          break;
+        case "DistrictView":
+          // If selecting departure => "Select departure station"
+          // If selecting arrival => "Select your arrival station"
+          if (userState === USER_STATES.SELECTING_DEPARTURE) {
+            setViewBarText("Select departure station");
+          } else if (userState === USER_STATES.SELECTING_ARRIVAL) {
+            setViewBarText("Select your arrival station");
+          } else {
+            setViewBarText(view.districtName || "District");
+          }
+          break;
+        case "StationView":
+          setViewBarText(view.districtName || "Station");
+          break;
+        case "MeView":
+          setViewBarText("Stations near me");
+          break;
+        case "DriveView":
+          // Will set after directions
+          break;
+        default:
+          setViewBarText("");
       }
     },
-    [map]
+    [map, userState]
   );
 
-  // **Navigate to DriveView**
   const navigateToDriveView = useCallback(() => {
     if (!map || !departureStation || !destinationStation) return;
+    const directionsService = new window.google.maps.DirectionsService();
+    directionsService.route(
+      {
+        origin: departureStation.position,
+        destination: destinationStation.position,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          setDirections(result);
+          const route = result.routes[0]?.legs[0];
+          if (!route) return;
+          const fare = calculateFare(route.distance.value, route.duration.value);
+          setFareInfo(fare);
+          setViewBarText(`Distance: ${fare.distanceKm} km | Est Time: ${fare.estTime}`);
 
-    // Calculate heading from departure to destination
-    const departureLatLng = new window.google.maps.LatLng(
-      departureStation.position.lat,
-      departureStation.position.lng
+          navigateToView({
+            name: "DriveView",
+            center: departureStation.position,
+            zoom: 16,
+          });
+          // No FareInfoWindow or RouteInfoWindow now
+        } else {
+          console.error(`Error fetching directions: ${status}`);
+        }
+      }
     );
-    const destinationLatLng = new window.google.maps.LatLng(
-      destinationStation.position.lat,
-      destinationStation.position.lng
-    );
-    const heading = window.google.maps.geometry.spherical.computeHeading(
-      departureLatLng,
-      destinationLatLng
-    );
+  }, [map, departureStation, destinationStation, calculateFare, navigateToView]);
 
-    const driveView = {
-      name: "DriveView",
-      center: departureStation.position,
-      zoom: 14,
-      tilt: 0,
-      heading: heading,
-    };
-    navigateToView(driveView);
-  }, [map, navigateToView, departureStation, destinationStation]);
+  const handleHomeClick = useCallback(() => {
+    navigateToView(CITY_VIEW);
+    setDepartureStation(null);
+    setDestinationStation(null);
+    setDirections(null);
+    setFareInfo(null);
+    setShowCircles(false);
+    setUserState(USER_STATES.SELECTING_DEPARTURE);
+    if (onStationDeselect) onStationDeselect();
+  }, [navigateToView, onStationDeselect]);
 
-  // **Handle station selection based on user state**
   const handleStationSelection = useCallback(
     (station) => {
       if (userState === USER_STATES.SELECTING_DEPARTURE) {
         setDepartureStation(station);
-        setViewBarText(`Stations near me`); // Optional: could remain "Stations near me"
-        // Navigate to StationView
+        if (onStationSelect) onStationSelect(station);
+        // Navigate to station view
         const stationView = {
           name: "StationView",
           center: station.position,
-          zoom: STATION_VIEW_ZOOM, // Zoom level 12
+          zoom: STATION_VIEW_ZOOM,
           tilt: 0,
           heading: 0,
-          districtName: station.district, // Pass district name for ViewBar
+          districtName: station.district,
         };
         navigateToView(stationView);
-        setUserState(USER_STATES.SELECTING_DEPARTURE); // Remain in SELECTING_DEPARTURE
+        // After choosing departure, user moves to SELECTING_ARRIVAL
+        setUserState(USER_STATES.SELECTING_ARRIVAL);
       } else if (userState === USER_STATES.SELECTING_ARRIVAL) {
         setDestinationStation(station);
         setUserState(USER_STATES.DISPLAY_FARE);
-        // **Invoke navigateToDriveView after setting arrival station**
         navigateToDriveView();
       }
     },
-    [userState, navigateToView, navigateToDriveView]
+    [userState, navigateToView, navigateToDriveView, onStationSelect]
   );
 
-  // **Handle "Choose Destination" button click**
-  const handleChooseDestination = () => {
-    const chooseDestinationView = {
-      name: "CityView",
-      center: BASE_CITY_CENTER,
-      zoom: CITY_VIEW.zoom,
-      tilt: CITY_VIEW.tilt,
-      heading: CITY_VIEW.heading,
-    };
-    navigateToView(chooseDestinationView);
+  const handleClearDeparture = useCallback(() => {
+    setDepartureStation(null);
+    setDirections(null);
+    setFareInfo(null);
+    setUserState(USER_STATES.SELECTING_DEPARTURE);
+    if (onStationDeselect) onStationDeselect();
+    // Return to CityView
+    navigateToView(CITY_VIEW);
+  }, [navigateToView, onStationDeselect]);
+
+  const handleClearArrival = useCallback(() => {
+    setDestinationStation(null);
+    setDirections(null);
+    setFareInfo(null);
+    setUserState(USER_STATES.SELECTING_ARRIVAL);
+    // Return to CityView
+    navigateToView(CITY_VIEW);
+  }, [navigateToView]);
+
+  const handleChooseDestination = useCallback(() => {
+    navigateToView(CITY_VIEW);
     setUserState(USER_STATES.SELECTING_ARRIVAL);
     setDestinationStation(null);
     setDirections(null);
     setFareInfo(null);
-    setViewBarText("Select your arrival station"); // Updated title
-  };
+    if (onStationDeselect) onStationDeselect();
+  }, [navigateToView, onStationDeselect]);
 
-  // **Compute fare once both departure and arrival are selected**
-  useEffect(() => {
-    if (departureStation && destinationStation) {
-      // Fetch directions between departure and arrival
-      const directionsService = new window.google.maps.DirectionsService();
-      directionsService.route(
-        {
-          origin: departureStation.position,
-          destination: destinationStation.position,
-          travelMode: window.google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === window.google.maps.DirectionsStatus.OK) {
-            setDirections(result);
-            // Compute fare based on distance and duration
-            const route = result.routes[0].legs[0];
-            const distance = route.distance.value; // in meters
-            // Removed the unused 'duration' variable
-            const fare = calculateFare(distance, route.duration.value); // Pass duration in seconds
-            setFareInfo(fare);
-
-            // Update ViewBar title with distance and estimated time
-            const distanceKm = (distance / 1000).toFixed(2);
-            const durationMinutes = Math.floor(route.duration.value / 60);
-            const durationHours = Math.floor(durationMinutes / 60);
-            const remainingMinutes = durationMinutes % 60;
-            const estTime = `${
-              durationHours > 0 ? `${durationHours} hr ` : ""
-            }${remainingMinutes} mins`;
-            setViewBarText(`Distance: ${distanceKm} km, Est Time: ${estTime}`);
-          } else {
-            console.error(`Error fetching directions: ${result}`);
-          }
-        }
-      );
-    }
-  }, [departureStation, destinationStation]);
-
-  // **Fare Calculation Function**
-  const calculateFare = (distance, durationInSeconds) => {
-    // distance in meters, duration in seconds
-    // Base fare: HK$24 for first 2km + HK$1 for each 200m beyond 2km
-    const baseTaxi = 24;
-    const extraMeters = Math.max(0, distance - 2000);
-    const increments = Math.floor(extraMeters / 200) * 1;
-    const taxiFareEstimate = baseTaxi + increments;
-
-    // Our pricing:
-    // Peak hours: starting fare = $65, off-peak = $35
-    const isPeak = isPeakHour(new Date());
-    const startingFare = isPeak ? 65 : 35;
-    // Aim for ~50% of taxi fare
-    const ourFare = Math.max(taxiFareEstimate * 0.5, startingFare);
-
-    return { ourFare, taxiFareEstimate };
-  };
-
-  // **Check if current time is peak hour**
-  const isPeakHour = (date) => {
-    const hour = date.getHours();
-    return PEAK_HOURS.some((p) => hour >= p.start && hour < p.end);
-  };
-
-  // **Locate the user**
   const locateMe = useCallback(() => {
     setDirections(null);
     setFareInfo(null);
-    // Do not clear selectedStation here
-
-    if (!map) {
-      console.error("Map not ready.");
-      return;
-    }
-
+    if (!map) return;
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -366,101 +344,19 @@ const MapContainer = () => {
             name: "MeView",
             center: userPos,
             zoom: 15,
-            tilt: 45,
           };
           navigateToView(meView);
           setShowCircles(true);
-          setViewBarText("Stations near me"); // Updated title
         },
-        (error) => {
-          console.error(
-            "Unable to access your location. Please enable location services.",
-            error
-          );
-        }
+        (error) => console.error("Location error:", error)
       );
-    } else {
-      console.error("Geolocation not supported by your browser.");
     }
   }, [map, navigateToView]);
 
-  // **Handle Home button click**
-  const handleHomeClick = useCallback(() => {
-    const homeView = {
-      name: "CityView",
-      center: BASE_CITY_CENTER,
-      zoom: CITY_VIEW.zoom,
-      tilt: CITY_VIEW.tilt,
-      heading: CITY_VIEW.heading,
-    };
-    setViewHistory([homeView]);
-    map.panTo(homeView.center);
-    map.setZoom(homeView.zoom);
-    if (homeView.tilt !== undefined) map.setTilt(homeView.tilt);
-    if (homeView.heading !== undefined) map.setHeading(homeView.heading);
-    map.setOptions({ styles: BASE_STYLES });
-    setDepartureStation(null);
-    setDestinationStation(null);
-    setDirections(null);
-    setFareInfo(null);
-    setShowCircles(false);
-    setViewBarText("Hong Kong"); // Reset to "Hong Kong"
-    setUserState(USER_STATES.SELECTING_DEPARTURE); // Reset to SELECTING_DEPARTURE
-  }, [map]);
-
-  // **Handle Clear Departure Selection**
-  const handleClearDeparture = () => {
-    setDepartureStation(null);
-    setDirections(null);
-    setFareInfo(null);
-    setViewBarText("Stations near me"); // Reset to "Stations near me"
-    setUserState(USER_STATES.SELECTING_DEPARTURE);
-  };
-
-  // **Handle Clear Arrival Selection**
-  const handleClearArrival = () => {
-    setDestinationStation(null);
-    setDirections(null);
-    setFareInfo(null);
-    setViewBarText(
-      departureStation
-        ? `Departure: ${departureStation.district}, ${departureStation.place}`
-        : "Stations near me"
-    );
-    setUserState(USER_STATES.SELECTING_ARRIVAL);
-  };
-
-  // **Handle district click**
-  const handleDistrictClick = useCallback(
-    (district) => {
-      const districtView = {
-        name: "DistrictView",
-        center: district.position,
-        zoom: 14, // Adjusted zoom level for district view
-        districtName: district.name,
-      };
-      navigateToView(districtView);
-      setViewBarText("Select your arrival station"); // Updated title
-      // Do not change userState here to prevent reverting from SELECTING_ARRIVAL
-    },
-    [navigateToView]
-  );
-
-  // **Handle map load**
-  const onLoadMap = useCallback((mapInstance) => {
-    console.log("Map loaded");
-    setMap(mapInstance);
-  }, []);
-
-  // **Invoke locateMe when map is set**
   useEffect(() => {
-    if (map) {
-      console.log("Invoking locateMe after map is set");
-      locateMe();
-    }
+    if (map) locateMe();
   }, [map, locateMe]);
 
-  // **Compute distance between user and a position (used for station filters)**
   const computeDistance = useCallback(
     (pos) => {
       if (!userLocation || !window.google?.maps?.geometry?.spherical)
@@ -478,62 +374,71 @@ const MapContainer = () => {
     [userLocation]
   );
 
-  // **Check if we are in MeView to filter stations**
   const inMeView = currentView.name === "MeView";
-  const filteredStations = useMemo(() => {
+  const baseFilteredStations = useMemo(() => {
     if (!inMeView || !userLocation) return stations;
     return stations.filter((st) => computeDistance(st.position) <= 1000);
   }, [inMeView, userLocation, stations, computeDistance]);
 
-  // **Get label position for radius circles**
-  const getCircleLabelPosition = useCallback((center, radius) => {
-    const latOffset = radius * 0.000009; // Approx conversion of meters to lat offset
-    return {
-      lat: center.lat + latOffset,
-      lng: center.lng,
-    };
+  const handleDistrictClick = useCallback(
+    (district) => {
+      const districtView = {
+        name: "DistrictView",
+        center: district.position,
+        zoom: 14,
+        districtName: district.name,
+      };
+      navigateToView(districtView);
+
+      // If selecting arrival, we instruct user to select arrival station
+      if (userState === USER_STATES.SELECTING_ARRIVAL) {
+        setViewBarText("Select your arrival station");
+      } else if (userState === USER_STATES.SELECTING_DEPARTURE) {
+        setViewBarText("Select departure station");
+      }
+    },
+    [navigateToView, userState]
+  );
+
+  const onLoadMap = useCallback((mapInstance) => {
+    setMap(mapInstance);
   }, []);
 
-  // **Directions Renderer options**
-  const directionsOptions = useMemo(() => {
-    return {
-      suppressMarkers: true,
-      polylineOptions: {
-        strokeColor: "#276ef1",
-        strokeOpacity: 0.8,
-        strokeWeight: 4,
-      },
-    };
-  }, []);
-
-  // **Handle route click (to show info windows)**
-  const handleRouteClick = useCallback(() => {
-    if (currentView.name === "RouteView") {
-      setRouteInfo({
-        title: "Walking Route Info",
-        description: `Estimated walking time: ${directions?.routes[0]?.legs[0]?.duration.text}`,
-        position: departureStation.position,
-      });
-    } else if (currentView.name === "DriveView") {
-      setRouteInfo({
-        title: "Driving Route Info",
-        description: `Estimated driving time: ${
-          directions?.routes[0]?.legs[0]?.duration.text
-        }. Fare: HK$${fareInfo?.ourFare.toFixed(
-          2
-        )} (Taxi Estimate: HK$${fareInfo?.taxiFareEstimate.toFixed(2)})`,
-        position: destinationStation.position,
-      });
+  // Determine which stations to display based on userState and selected stations
+  const displayedStations = useMemo(() => {
+    if (userState === USER_STATES.SELECTING_DEPARTURE) {
+      if (departureStation) {
+        // After selecting departure, show only departure station
+        return [departureStation];
+      } else {
+        // Before selecting departure, show all filtered stations
+        return baseFilteredStations;
+      }
+    } else if (userState === USER_STATES.SELECTING_ARRIVAL) {
+      if (destinationStation) {
+        // After selecting arrival station, show only departure and arrival
+        return [departureStation, destinationStation].filter(Boolean);
+      } else {
+        // While selecting arrival, but no arrival chosen yet: show only departure station
+        return [departureStation].filter(Boolean);
+      }
+    } else if (userState === USER_STATES.DISPLAY_FARE) {
+      // Fare displayed: show departure and arrival only
+      return [departureStation, destinationStation].filter(Boolean);
+    } else {
+      return baseFilteredStations;
     }
-  }, [
-    currentView.name,
-    directions,
-    fareInfo,
-    departureStation,
-    destinationStation,
-  ]);
+  }, [userState, departureStation, destinationStation, baseFilteredStations]);
 
-  // **Loading and Error States for Data Fetching**
+  const directionsOptions = useMemo(() => ({
+    suppressMarkers: true,
+    polylineOptions: {
+      strokeColor: "#276ef1",
+      strokeOpacity: 0.8,
+      strokeWeight: 4,
+    },
+  }), []);
+
   if (loadError) {
     return (
       <div className="error-message">
@@ -542,13 +447,10 @@ const MapContainer = () => {
     );
   }
 
-  if (!isLoaded) {
-    return <div className="loading-message">Loading map...</div>;
-  }
+  if (!isLoaded) return <div className="loading-message">Loading map...</div>;
 
-  if (stationsLoading || districtsLoading) {
+  if (stationsLoading || districtsLoading)
     return <div className="loading-message">Loading map data...</div>;
-  }
 
   if (stationsError || districtsError) {
     return (
@@ -559,11 +461,7 @@ const MapContainer = () => {
   }
 
   return (
-    <div
-      className="map-container"
-      style={{ position: "relative", width: "100%", height: "100vh" }}
-    >
-      {/* ViewBar without Back Button */}
+    <div className="map-container" style={{ position: "relative", width: "100%", height: "100vh" }}>
       <ViewBar
         departure={departureStation?.place}
         arrival={destinationStation?.place}
@@ -577,12 +475,12 @@ const MapContainer = () => {
           userState === USER_STATES.SELECTING_DEPARTURE
         }
         onChooseDestination={handleChooseDestination}
-        onHome={handleHomeClick} // Pass handleHomeClick function to ViewBar
-        isCityView={currentView.name === "CityView"} // Pass isCityView flag to ViewBar
-        userState={userState} // Pass current userState
-        isMeView={currentView.name === "MeView"} // Pass isMeView flag
-        distanceKm={fareInfo ? (fareInfo.distanceKm || 0).toFixed(2) : null} // Pass distance
-        estTime={fareInfo ? fareInfo.estTime : null} // Pass estimated time
+        onHome={handleHomeClick}
+        isCityView={currentView.name === "CityView"}
+        userState={userState}
+        isMeView={currentView.name === "MeView"}
+        distanceKm={fareInfo ? fareInfo.distanceKm : null}
+        estTime={fareInfo ? fareInfo.estTime : null}
       />
 
       <GoogleMap
@@ -590,43 +488,30 @@ const MapContainer = () => {
         center={currentView.center}
         zoom={currentView.zoom}
         options={{
-          mapId: mapId, // Reintroduced mapId for custom styling
+          mapId: mapId,
           tilt: currentView.tilt || 0,
           heading: currentView.heading || 0,
           streetViewControl: false,
           mapTypeControl: false,
           fullscreenControl: false,
           zoomControl: true,
-          gestureHandling: "none", // **Disabled all default gesture handling**
-          rotateControl: false, // Optionally disable rotate control if not needed
-          minZoom: 10,
-          draggable: false, // **Disabled dragging to rely on custom gestures**
-          scrollwheel: false, // **Disabled scrollwheel zooming**
-          disableDoubleClickZoom: true, // **Disabled double-click zooming**
-          styles:
-            currentView.name === "RouteView"
-              ? ROUTE_VIEW_STYLES
-              : currentView.name === "StationView"
-              ? STATION_VIEW_STYLES
-              : currentView.name === "DriveView"
-              ? BASE_STYLES
-              : BASE_STYLES,
+          // We rely on user pressing SHIFT for tilt/rotate as per default Google Maps handling
+          gestureHandling: "auto",
+          rotateControl: false,
         }}
         onLoad={onLoadMap}
-        onClick={() => {
-          /* Optionally handle map clicks */
-        }}
       >
-        {/* User Location Circles */}
         {userLocation && showCircles && (
           <UserCircles
             userLocation={userLocation}
             distances={CIRCLE_DISTANCES}
-            getLabelPosition={getCircleLabelPosition}
+            getLabelPosition={(c, r) => {
+              const latOffset = r * 0.000009;
+              return { lat: c.lat + latOffset, lng: c.lng };
+            }}
           />
         )}
 
-        {/* District Overlays (in CityView) */}
         {currentView.name === "CityView" && (
           <DistrictMarkers
             districts={districts}
@@ -634,11 +519,9 @@ const MapContainer = () => {
           />
         )}
 
-        {/* Station Overlays (in MeView or DistrictView) */}
-        {(currentView.name === "MeView" ||
-          currentView.name === "DistrictView") && (
+        {(currentView.name === "MeView" || currentView.name === "DistrictView" || currentView.name === "StationView" || currentView.name === "DriveView") && (
           <StationMarkers
-            stations={filteredStations}
+            stations={displayedStations}
             onStationClick={handleStationSelection}
             selectedStations={{
               departure: departureStation,
@@ -647,7 +530,6 @@ const MapContainer = () => {
           />
         )}
 
-        {/* User Arrow Overlay */}
         {userLocation && (
           <UserOverlay
             userLocation={userLocation}
@@ -655,60 +537,32 @@ const MapContainer = () => {
           />
         )}
 
-        {/* Directions Renderer */}
         {directions && (
-          <DirectionsRenderer
-            directions={directions}
-            options={directionsOptions}
-          />
-        )}
-
-        {/* Polyline for Clickable Route */}
-        {directions &&
-          directions.routes.map((route, routeIndex) =>
-            route.legs.map((leg, legIndex) =>
-              leg.steps.map((step, stepIndex) => (
-                <Polyline
-                  key={`${routeIndex}-${legIndex}-${stepIndex}`}
-                  path={step.path}
-                  options={{
-                    strokeColor: "#276ef1",
-                    strokeOpacity: 0.8,
-                    strokeWeight: 4,
-                  }}
-                  onClick={handleRouteClick}
-                />
-              ))
-            )
-          )}
-
-        {/* Fare Info Window */}
-        {fareInfo &&
-          userState === USER_STATES.DISPLAY_FARE &&
-          destinationStation && (
-            <FareInfoWindow
-              position={destinationStation.position}
-              fareInfo={{
-                duration: directions.routes[0].legs[0].duration.text,
-                ourFare: fareInfo.ourFare,
-                taxiFareEstimate: fareInfo.taxiFareEstimate,
-              }}
-              onClose={() => setFareInfo(null)}
+          <>
+            <DirectionsRenderer
+              directions={directions}
+              options={directionsOptions}
             />
-          )}
-
-        {/* Route Info Window */}
-        {routeInfo && (
-          <RouteInfoWindow
-            position={routeInfo.position}
-            info={routeInfo} // Updated to pass 'info' prop
-            onClose={() => setRouteInfo(null)}
-          />
+            {directions.routes.map((route, routeIndex) =>
+              route.legs.map((leg, legIndex) =>
+                leg.steps.map((step, stepIndex) => (
+                  <Polyline
+                    key={`${routeIndex}-${legIndex}-${stepIndex}`}
+                    path={step.path}
+                    options={{
+                      strokeColor: "#276ef1",
+                      strokeOpacity: 0.8,
+                      strokeWeight: 4,
+                    }}
+                  />
+                ))
+              )
+            )}
+          </>
         )}
       </GoogleMap>
 
-      {/* MotionMenu for displaying fare information */}
-      {userState === USER_STATES.DISPLAY_FARE && (
+      {userState === USER_STATES.DISPLAY_FARE && fareInfo && (
         <MotionMenu fareInfo={fareInfo} />
       )}
     </div>
