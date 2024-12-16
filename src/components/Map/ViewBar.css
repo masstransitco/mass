@@ -4,22 +4,47 @@
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  align-items: center;
+  align-items: stretch;
   background-color: rgba(255, 255, 255, 0.95);
   padding: 10px 20px;
   border-radius: 9999px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 10;
   max-width: 90%;
-  font-family: Helvetica, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+/* Branding section on the left */
+.view-bar-branding {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.brand-name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-left: 10px;
+  color: #333;
+}
+
+/* Locate Me button */
 .view-bar .locate-me-button {
-  background: transparent;
+  background: #2171ec;
   border: none;
   cursor: pointer;
-  font-size: 1.2em;
-  margin-right: 10px;
+  font-size: 1em;
+  color: #fff;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-bar .locate-me-button:hover {
+  background: #195db7;
 }
 
 .view-bar-center {
@@ -31,7 +56,8 @@
 .view-bar-text h2 {
   margin: 0;
   font-size: 1.2em;
-  font-weight: bold;
+  font-weight: 500;
+  color: #333;
 }
 
 .view-bar-info {
@@ -50,7 +76,8 @@
 .departure-info span,
 .arrival-info span {
   margin-right: 10px;
-  font-weight: bold;
+  font-weight: 500;
+  color: #333;
 }
 
 .clear-button {
@@ -60,9 +87,10 @@
   width: 80px;
   text-align: center;
   padding: 5px 0;
-  border-radius: 4px;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 0.9em;
+  font-weight: 500;
 }
 
 .clear-button:hover {
@@ -73,6 +101,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-left: 20px;
 }
 
 .choose-destination-button,
@@ -83,7 +112,7 @@
   font-size: 0.9em;
   color: #2171ec;
   text-decoration: underline;
-  font-weight: 300;
+  font-weight: 400;
 }
 
 .choose-destination-button:hover,
@@ -96,6 +125,11 @@
   .view-bar {
     flex-direction: column;
     align-items: flex-start;
+    padding: 15px;
+  }
+
+  .view-bar-branding {
+    margin-bottom: 10px;
   }
 
   .view-bar-actions {

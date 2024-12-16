@@ -1,3 +1,10 @@
+// src/components/Map/ViewBar.jsx
+
+import React from "react";
+import PropTypes from "prop-types";
+import { FaLocationArrow } from "react-icons/fa";
+import "./ViewBar.css";
+
 const ViewBar = ({
   departure,
   arrival,
@@ -13,16 +20,21 @@ const ViewBar = ({
 }) => {
   return (
     <div className="view-bar">
-      {!isMeView && (
-        <button
-          onClick={onLocateMe}
-          className="locate-me-button"
-          aria-label="Locate Me"
-        >
-          <FaLocationArrow />
-        </button>
-      )}
+      {/* Left side brand/logo section */}
+      <div className="view-bar-branding">
+        {!isMeView && (
+          <button
+            onClick={onLocateMe}
+            className="locate-me-button"
+            aria-label="Locate Me"
+          >
+            <FaLocationArrow />
+          </button>
+        )}
+        <span className="brand-name">MyTransit</span>
+      </div>
 
+      {/* Center: Title and info */}
       <div className="view-bar-center">
         <div className="view-bar-text">
           <h2>{viewBarText}</h2>
@@ -55,6 +67,7 @@ const ViewBar = ({
         </div>
       </div>
 
+      {/* Right: Actions */}
       <div className="view-bar-actions">
         {showChooseDestination && (
           <button
