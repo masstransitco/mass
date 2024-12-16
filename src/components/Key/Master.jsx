@@ -17,6 +17,7 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     const fetchVehicles = async () => {
       setIsLoading(true);
+      setStatusMessage(""); // Reset status message
       try {
         const response = await fetch(`${API_BASE_URL}/vehicles`, {
           headers: {
@@ -26,12 +27,12 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
         });
         if (response.ok) {
           const data = await response.json();
-          setVehicles(data.data || []);
+          setVehicles(data.data || []); // Assuming the vehicle list is in `data.data`
         } else {
           const errorData = await response.json();
           setStatusMessage(
             `Failed to fetch vehicles: ${
-              errorData.meta.message || "Unknown error"
+              errorData.meta?.message || "Unknown error"
             }`
           );
         }
@@ -51,31 +52,30 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
       return;
     }
 
-    const url = `${API_BASE_URL}/vehicles/commands/${selectedVehicle}`;
+    const url = `${API_BASE_URL}/vehicles/${selectedVehicle}/central-locking`; // Use central-locking endpoint
     const headers = {
       "Content-Type": "application/json",
       Authorization: `Basic ${encodedAuth}`,
     };
 
     const body = JSON.stringify({
-      command_type: command, // "lock" or "unlock"
+      command: command.toUpperCase(), // Use "LOCK" or "UNLOCK"
     });
 
     try {
       const response = await fetch(url, {
-        method: "POST",
+        method: "PUT",
         headers,
         body,
       });
 
       if (response.ok) {
-        setStatusMessage(`Command '${command}' sent successfully.`);
+        const result = await response.text();
+        setStatusMessage(`Command '${command}' sent successfully: ${result}`);
       } else {
-        const errorData = await response.json();
+        const errorData = await response.text();
         setStatusMessage(
-          `Failed to send command. Error: ${
-            errorData.meta?.message || "Unknown error"
-          }`
+          `Failed to send command. Error: ${errorData || "Unknown error"}`
         );
       }
     } catch (error) {
@@ -110,8 +110,8 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
             </select>
 
             <div className="modal-buttons">
-              <button onClick={() => handleCommand("lock")}>Lock</button>
-              <button onClick={() => handleCommand("unlock")}>Unlock</button>
+              <button onClick={() => handleCommand("LOCK")}>Lock</button>
+              <button onClick={() => handleCommand("UNLOCK")}>Unlock</button>
             </div>
           </>
         )}
