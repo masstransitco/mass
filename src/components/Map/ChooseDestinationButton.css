@@ -1,0 +1,22 @@
+/* src/components/Map/ChooseDestinationButton.css */
+
+.choose-destination-button {
+  background-color: #276ef1;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.choose-destination-button:hover {
+  background-color: #1f4dbf;
+}
+
+.choose-destination-button svg {
+  margin-left: 8px;
+}

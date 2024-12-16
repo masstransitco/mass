@@ -1,0 +1,24 @@
+{
+"type": "FeatureCollection",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "District": "Central and Western" }, "geometry": { "type": "Point", "coordinates": [ 114.141031809568602, 22.284683601390384 ] } },
+{ "type": "Feature", "properties": { "District": "Eastern" }, "geometry": { "type": "Point", "coordinates": [ 114.211367577044399, 22.283494377799368 ] } },
+{ "type": "Feature", "properties": { "District": "Islands" }, "geometry": { "type": "Point", "coordinates": [ 113.937060348028496, 22.298367416566148 ] } },
+{ "type": "Feature", "properties": { "District": "Kowloon City" }, "geometry": { "type": "Point", "coordinates": [ 114.188267477547342, 22.3130239553455 ] } },
+{ "type": "Feature", "properties": { "District": "Kwai Tsing" }, "geometry": { "type": "Point", "coordinates": [ 114.125589631493995, 22.361265527245148 ] } },
+{ "type": "Feature", "properties": { "District": "Kwun Tong" }, "geometry": { "type": "Point", "coordinates": [ 114.216431990105889, 22.317727477578327 ] } },
+{ "type": "Feature", "properties": { "District": "North" }, "geometry": { "type": "Point", "coordinates": [ 114.133168733401249, 22.503364622449801 ] } },
+{ "type": "Feature", "properties": { "District": "Sai Kung" }, "geometry": { "type": "Point", "coordinates": [ 114.264925069672501, 22.325135576136184 ] } },
+{ "type": "Feature", "properties": { "District": "Sha Tin" }, "geometry": { "type": "Point", "coordinates": [ 114.197409501114407, 22.386567801363157 ] } },
+{ "type": "Feature", "properties": { "District": "Sham Shui Po" }, "geometry": { "type": "Point", "coordinates": [ 114.150446892969498, 22.334052529003237 ] } },
+{ "type": "Feature", "properties": { "District": "Southern" }, "geometry": { "type": "Point", "coordinates": [ 114.154267333100506, 22.251111173436051 ] } },
+{ "type": "Feature", "properties": { "District": "Tai Po" }, "geometry": { "type": "Point", "coordinates": [ 114.167450892687199, 22.450830551153238 ] } },
+{ "type": "Feature", "properties": { "District": "Tsuen Wan" }, "geometry": { "type": "Point", "coordinates": [ 114.106961331249934, 22.371172827626733 ] } },
+{ "type": "Feature", "properties": { "District": "Tuen Mun" }, "geometry": { "type": "Point", "coordinates": [ 113.973650134290992, 22.397859842754755 ] } },
+{ "type": "Feature", "properties": { "District": "Wan Chai" }, "geometry": { "type": "Point", "coordinates": [ 114.173367159558865, 22.278888054754077 ] } },
+{ "type": "Feature", "properties": { "District": "Wong Tai Sin" }, "geometry": { "type": "Point", "coordinates": [ 114.197723592561758, 22.336058206205902 ] } },
+{ "type": "Feature", "properties": { "District": "Yau Tsim Mong" }, "geometry": { "type": "Point", "coordinates": [ 114.170678622686992, 22.308435391800302 ] } },
+{ "type": "Feature", "properties": { "District": "Yuen Long" }, "geometry": { "type": "Point", "coordinates": [ 114.02094344833688, 22.449989253639075 ] } }
+]
+}

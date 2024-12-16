@@ -1,0 +1,17 @@
+/* index.css */
+
+/* Ensure the html and body take up the full height */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* App container as a flex column */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}

@@ -1,0 +1,120 @@
+/* src/components/Map/ViewBar.css */
+
+/* ViewBar Container */
+.view-bar {
+  display: flex;
+  flex-direction: row; /* Changed from column to row */
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 20px;
+  background-color: #1a1a1a; /* Dark Theme Background */
+  position: absolute; /* Position at the top */
+  top: 0;
+  left: 0;
+  z-index: 1000; /* Ensure it stays on top */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-family: Helvetica, Arial, sans-serif; /* Helvetica Font */
+}
+
+/* Top Buttons Group */
+.top-buttons-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* View Title */
+.view-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-align: center;
+  flex-grow: 1; /* Allow title to take up remaining space */
+  color: #ffffff; /* White text for dark background */
+}
+
+/* Buttons Group */
+.buttons-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Selection Buttons Container */
+.selection-buttons-container {
+  display: flex;
+  flex-direction: column; /* Stack vertically */
+  align-items: flex-end; /* Align to the end to maintain layout */
+  gap: 5px;
+}
+
+/* Clear Button */
+.clear-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #ffffff; /* White color */
+  transition: color 0.3s ease;
+}
+
+.clear-button:hover {
+  color: #1a5bb8; /* Hover color */
+}
+
+/* Selection Bar */
+.selection-bar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.1
+  ); /* Slightly transparent for dark theme */
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+/* Selection Text */
+.selection-text {
+  font-size: 1rem;
+  color: #ffffff; /* White text */
+}
+
+/* Choose Destination Button */
+.choose-destination-button {
+  padding: 12px 20px;
+  background-color: #1e3a8a; /* Uber Blue */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-family: Helvetica, Arial, sans-serif; /* Helvetica Font */
+  transition: background-color 0.3s ease;
+}
+
+.choose-destination-button:hover {
+  background-color: #1a5bb8; /* Darker Uber Blue on hover */
+}
+
+/* Optional: Responsive Design for Mobile Devices */
+@media (max-width: 600px) {
+  .view-bar {
+    padding: 8px 12px;
+  }
+
+  .view-title {
+    font-size: 1.2rem;
+  }
+
+  .choose-destination-button {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+}

@@ -1,0 +1,62 @@
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* Full viewport height */
+  height: 3.5px;
+  background-color: #adadad; /* Background color of the loader container */
+}
+
+.pulsating-strip {
+  width: 99%; /* Width of the loading strip */
+  height: 3.2px; /* Height of the loading strip */
+  background-color: #2171ec; /* Base color of the strip */
+
+  border-radius: 1.5px; /* Rounded corners with a radius of 1.5px */
+
+  /* Enable GPU acceleration */
+  will-change: transform, opacity; /* Hint to the browser about upcoming changes */
+
+  animation: heartbeat 0.8s infinite; /* Animation effect for heartbeat rhythm */
+
+  /* Add depth and shadow */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); /* Shadow effect */
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(0.955);
+    background-color: #2171ec; /* Initial color */
+    opacity: 1;
+  }
+  10% {
+    transform: scale(1); /* Quick scale up for pulse */
+    background-color: #4a9fe8; /* Lighter shade */
+    opacity: 1;
+  }
+  20% {
+    transform: scale(0.985); /* Slightly scale down */
+    background-color: #4a9fe8; /* Maintain lighter shade */
+    opacity: 0.9;
+  }
+  40% {
+    transform: scale(0.958); /* Return to original size quickly */
+    background-color: #2171ec; /* Return to original color */
+    opacity: 0.8;
+  }
+  60% {
+    transform: scale(0.956); /* Maintain original size briefly */
+    background-color: #2171ec; /* Maintain original color */
+    opacity: 0.7;
+  }
+  80% {
+    transform: scale(0.955); /* Maintain original size briefly */
+    background-color: #2171ec; /* Maintain original color */
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0.956); /* Return to original size */
+    background-color: #2171ec; /* Return to original color */
+    opacity: 1;
+  }
+}

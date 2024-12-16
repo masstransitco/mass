@@ -1,0 +1,15 @@
+/* src/components/GoogleSignIn.css */
+
+.google-signin-button {
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.google-signin-button:hover {
+  background-color: #357ae8;
+}

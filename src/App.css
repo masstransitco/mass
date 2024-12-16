@@ -1,0 +1,167 @@
+/* App.css */
+
+/* Prevent scrolling on the entire application */
+html,
+body,
+#root,
+.App {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* Disables all scrolling */
+}
+
+/* Ensure the main App container is a flex column and occupies full height */
+.App {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1; /* Fills the remaining space after header and footer */
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  overflow: hidden; /* Prevent scrolling within main-content */
+  padding: 2.5px;
+  box-sizing: border-box;
+  gap: 1.5px; /* 1.5px gap between components */
+}
+
+/* Header and Footer */
+header,
+footer {
+  background-color: var(
+    --primary-black
+  ); /* Ensure this color is fully opaque */
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000; /* Increased z-index for fixed positioning */
+  width: 100%;
+  height: 60px; /* Fixed height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff; /* White text for visibility */
+  box-sizing: border-box; /* Ensure padding doesn't affect total height */
+  background-color: #000000; /* **Added:** Solid black background */
+}
+
+/* Make Header Fixed */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #000000; /* **Ensured:** Solid background without transparency */
+}
+
+/* Footer should match Header and be fixed */
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  background-color: #000000; /* **Ensured:** Solid background without transparency */
+}
+
+/* Adjust Main Content to account for fixed Header and Footer */
+.main-content {
+  margin-top: 60px; /* Height of the header */
+  margin-bottom: 60px; /* Height of the footer */
+}
+
+/* Map Container */
+.map-container {
+  width: 100%;
+  flex: 1; /* Allows the map to expand and fill available space */
+  border: 1px solid #555555;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* PulseStrip */
+.pulse-strip {
+  width: 100%;
+  height: 50px; /* Adjust height as needed */
+  background: linear-gradient(
+    90deg,
+    #ff6b6b,
+    #f06595,
+    #cc5de8,
+    #845ef7,
+    #5c7cfa
+  );
+  animation: pulse 2s infinite;
+  border-radius: 8px;
+}
+
+/* Animation for PulseStrip */
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+/* MotionMenu */
+.motion-menu {
+  width: 100%;
+  height: 70%; /* Reduced height by 30% */
+  background-color: var(--primary-black);
+  border-top: 1px solid #555555;
+  position: fixed;
+  bottom: 60px; /* Positioned above the footer */
+  left: 0;
+  z-index: 999; /* Below header and footer */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Add any additional styling as needed */
+}
+
+/* Loading Screen */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #ffffff;
+  font-size: 1.5rem;
+}
+
+/* Locate Me Button */
+.locate-me-button {
+  position: absolute;
+  top: 10px; /* Initial top position */
+  right: 10px; /* Initial right position */
+  transform: translateY(
+    -300%
+  ); /* Moves the button upwards by 3 times its height */
+  background-color: #ffffff; /* Example background color */
+  border: none;
+  border-radius: 50%;
+  width: 40px; /* Example width */
+  height: 40px; /* Example height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 1001; /* Ensure it sits above other elements */
+}
+
+/* Disable Right-Click Context Menu */
+.App {
+  -webkit-touch-callout: none; /* Disable callout on iOS */
+  -webkit-user-select: none; /* Disable text selection on Safari */
+  -khtml-user-select: none; /* Disable text selection on Konqueror */
+  -moz-user-select: none; /* Disable text selection on Firefox */
+  -ms-user-select: none; /* Disable text selection on IE/Edge */
+  user-select: none; /* Disable text selection */
+}

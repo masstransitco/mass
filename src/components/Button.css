@@ -1,0 +1,25 @@
+/* Button.css */
+
+.back-button,
+.home-button {
+  margin-right: 10px;
+  padding: 8px 12px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: #ffffff;
+  transition: background-color 0.3s;
+}
+
+.back-button:hover,
+.home-button:hover {
+  background-color: #0056b3;
+}
+
+.back-button:focus,
+.home-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+}
