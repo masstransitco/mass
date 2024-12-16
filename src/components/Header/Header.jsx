@@ -8,12 +8,12 @@ import React, {
 import "./Header.css";
 import { AuthContext } from "../../context/AuthContext";
 import classNames from "classnames";
-import MTCGameModal from "./Game"; // Adjust the path as necessary
+import LockUnlockModal from "../Key/Master"; // Import the LockUnlockModal component
 
 const Header = () => {
   const { user, loading, logout, googleSignIn } = useContext(AuthContext);
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [isGameModalVisible, setIsGameModalVisible] = useState(false); // State for modal visibility
+  const [isLockUnlockModalVisible, setIsLockUnlockModalVisible] = useState(false); // State for LockUnlockModal visibility
   const dropdownRef = useRef(null);
   const firstDropdownItemRef = useRef(null);
 
@@ -79,7 +79,10 @@ const Header = () => {
       <header className="header">
         <div className="header-content">
           {/* Logo Section */}
-          <div className="logo" onClick={() => setIsGameModalVisible(true)}>
+          <div
+            className="logo"
+            onClick={() => setIsLockUnlockModalVisible(true)} // Open LockUnlockModal on logo click
+          >
             <img src="/logo.png" alt="ReactMTC Logo" className="logo-image" />
           </div>
 
@@ -167,10 +170,10 @@ const Header = () => {
         </div>
       </header>
 
-      {/* Game Modal */}
-      <MTCGameModal
-        show={isGameModalVisible}
-        onClose={() => setIsGameModalVisible(false)}
+      {/* LockUnlock Modal */}
+      <LockUnlockModal
+        isOpen={isLockUnlockModalVisible} // Pass visibility state
+        onClose={() => setIsLockUnlockModalVisible(false)} // Close modal handler
       />
     </>
   );
