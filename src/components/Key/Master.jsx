@@ -21,15 +21,18 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
         const response = await fetch(`${API_BASE_URL}/vehicles`, {
           headers: {
             Authorization: `Basic ${encodedAuth}`,
+            "Content-Type": "application/json",
           },
         });
         if (response.ok) {
           const data = await response.json();
-          setVehicles(data.vehicles || []);
+          setVehicles(data.data || []);
         } else {
           const errorData = await response.json();
           setStatusMessage(
-            `Failed to fetch vehicles: ${errorData.meta.message}`
+            `Failed to fetch vehicles: ${
+              errorData.meta.message || "Unknown error"
+            }`
           );
         }
       } catch (error) {
@@ -39,7 +42,7 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
       }
     };
 
-    if (isOpen) fetchVehicles(); // Fetch vehicles when the modal is opened
+    if (isOpen) fetchVehicles();
   }, [isOpen, API_BASE_URL, encodedAuth]);
 
   const handleCommand = async (command) => {
@@ -70,7 +73,9 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
       } else {
         const errorData = await response.json();
         setStatusMessage(
-          `Failed to send command. Error: ${errorData.meta.message}`
+          `Failed to send command. Error: ${
+            errorData.meta?.message || "Unknown error"
+          }`
         );
       }
     } catch (error) {
@@ -98,8 +103,8 @@ const LockUnlockModal = ({ isOpen, onClose }) => {
             >
               <option value="">Select a Vehicle</option>
               {vehicles.map((vehicle) => (
-                <option key={vehicle.id} value={vehicle.id}>
-                  {vehicle.name || `Vehicle ${vehicle.id}`}
+                <option key={vehicle.registration} value={vehicle.registration}>
+                  {vehicle.name || `Vehicle ${vehicle.registration}`}
                 </option>
               ))}
             </select>
