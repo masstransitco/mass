@@ -48,7 +48,7 @@ const CITY_VIEW = {
   heading: 0,
 };
 
-const STATION_VIEW_ZOOM = 12; // Defined zoom level for StationView
+const STATION_VIEW_ZOOM = 16; // Defined zoom level for StationView
 
 // Circle distances in meters
 const CIRCLE_DISTANCES = [500, 1000]; // meters
