@@ -1,0 +1,36 @@
+.spinner {
+  width: 60px;
+  height: 60px;
+  animation: rotate 1s linear infinite;
+}
+
+.circle {
+  fill: none;
+  stroke: #ffffff; /* White color for dark theme */
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 283; /* Circumference of the circle (2 * π * r) */
+  stroke-dashoffset: 0;
+  animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dashoffset: 283; /* Start from the full circumference */
+  }
+  50% {
+    stroke-dashoffset: 70; /* Adjust this value to control the animation */
+  }
+  100% {
+    stroke-dashoffset: 283; /* Return to start */
+  }
+}
