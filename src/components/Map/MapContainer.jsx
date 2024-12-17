@@ -14,14 +14,17 @@ import MotionMenu from "../Menu/MotionMenu";
 import UserOverlay from "./UserOverlay";
 import UserCircles from "./UserCircles";
 
+import DistrictMarkers from "./DistrictMarkers"; // Import DistrictMarkers
+import StationMarkers from "./StationMarkers"; // Import StationMarkers
+
 import useFetchGeoJSON from "../../hooks/useFetchGeoJSON";
 import useMapGestures from "../../hooks/useMapGestures";
 
 import "./MapContainer.css";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // **Securely loaded from .env**
+const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // Securely loaded from .env
 const mapId = "94527c02bbb6243";
-const libraries = ["geometry", "places", "marker"];
+const libraries = ["geometry", "places"];
 const containerStyle = { width: "100%", height: "100vh" };
 const BASE_CITY_CENTER = { lat: 22.236, lng: 114.191 };
 const CITY_VIEW = {
@@ -412,107 +415,6 @@ const MapContainer = ({
     }
   }, [map, stations, districts]);
 
-  // State for markers
-  const [districtMarkers, setDistrictMarkers] = useState([]);
-  const [stationMarkers, setStationMarkers] = useState([]);
-
-  // Create District Markers
-  useEffect(() => {
-    if (!map || !window.google?.maps?.marker?.AdvancedMarkerElement) return;
-
-    // Clear existing district markers
-    districtMarkers.forEach((m) => (m.map = null));
-
-    if (currentView.name === "CityView") {
-      const newMarkers = districts.map((district) => {
-        const marker = new window.google.maps.marker.AdvancedMarkerElement({
-          map,
-          position: district.position,
-          title: district.name,
-        });
-
-        marker.addListener("click", () => {
-          handleDistrictClick(district);
-        });
-
-        return marker;
-      });
-
-      setDistrictMarkers(newMarkers);
-    } else {
-      setDistrictMarkers([]);
-    }
-
-    return () => {
-      districtMarkers.forEach((m) => (m.map = null));
-    };
-  }, [map, districts, currentView, handleDistrictClick]);
-
-  // Create Station Markers
-  useEffect(() => {
-    if (!map || !window.google?.maps?.marker?.AdvancedMarkerElement) return;
-
-    // Clear existing station markers
-    stationMarkers.forEach((m) => (m.map = null));
-
-    // In the city view, we show no stations (except if we have a departure already selected)
-    // In MeView, DistrictView, StationView, DriveView we show stations according to displayedStations
-    if (
-      currentView.name === "MeView" ||
-      currentView.name === "DistrictView" ||
-      currentView.name === "StationView" ||
-      currentView.name === "DriveView"
-    ) {
-      const newMarkers = displayedStations.map((station) => {
-        const marker = new window.google.maps.marker.AdvancedMarkerElement({
-          map,
-          position: station.position,
-          title: station.place,
-        });
-
-        marker.addListener("click", () => {
-          handleStationSelection(station);
-        });
-
-        return marker;
-      });
-      setStationMarkers(newMarkers);
-    } else if (
-      currentView.name === "CityView" &&
-      departureStation &&
-      userState !== USER_STATES.DISPLAY_FARE
-    ) {
-      // If we have a departure station selected and are back at city view for choosing arrival
-      const newMarkers = [departureStation].map((station) => {
-        const marker = new window.google.maps.marker.AdvancedMarkerElement({
-          map,
-          position: station.position,
-          title: station.place,
-        });
-
-        marker.addListener("click", () => {
-          handleStationSelection(station);
-        });
-
-        return marker;
-      });
-      setStationMarkers(newMarkers);
-    } else {
-      setStationMarkers([]);
-    }
-
-    return () => {
-      stationMarkers.forEach((m) => (m.map = null));
-    };
-  }, [
-    map,
-    displayedStations,
-    currentView,
-    departureStation,
-    userState,
-    handleStationSelection,
-  ]);
-
   if (loadError) {
     return (
       <div className="error-message">
@@ -628,6 +530,17 @@ const MapContainer = ({
             )}
           </>
         )}
+
+        {/* Integrate DistrictMarkers and StationMarkers */}
+        <DistrictMarkers
+          districts={districts}
+          onDistrictClick={handleDistrictClick}
+        />
+
+        <StationMarkers
+          stations={displayedStations}
+          onStationClick={handleStationSelection}
+        />
       </GoogleMap>
 
       {userState === USER_STATES.DISPLAY_FARE && fareInfo && (

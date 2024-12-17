@@ -1,47 +1,41 @@
 // src/components/Map/DistrictMarkers.jsx
 
-import React, { useEffect, useState } from "react";
-import { useGoogleMap } from "@react-google-maps/api";
+import React from "react";
+import PropTypes from "prop-types";
+import { Marker } from "@react-google-maps/api";
 
 const DistrictMarkers = ({ districts, onDistrictClick }) => {
-  const map = useGoogleMap();
-  const [markers, setMarkers] = useState([]);
+  return (
+    <>
+      {districts.map((district) => (
+        <Marker
+          key={district.id}
+          position={district.position}
+          title={district.name}
+          onClick={() => onDistrictClick && onDistrictClick(district)}
+          // Optional: Customize marker icon if needed
+          // icon={{
+          //   url: "/path-to-custom-icon.png",
+          //   scaledSize: new window.google.maps.Size(30, 30),
+          // }}
+        />
+      ))}
+    </>
+  );
+};
 
-  useEffect(() => {
-    if (!map || !window.google?.maps?.marker?.AdvancedMarkerElement) return;
-
-    // Clear any existing markers
-    markers.forEach((marker) => {
-      marker.map = null;
-    });
-
-    // Create new advanced markers
-    const newMarkers = districts.map((district) => {
-      const marker = new window.google.maps.marker.AdvancedMarkerElement({
-        map,
-        position: district.position,
-        title: district.name,
-      });
-
-      // Add click listener for district
-      marker.addListener("click", () => {
-        if (onDistrictClick) onDistrictClick(district);
-      });
-
-      return marker;
-    });
-
-    setMarkers(newMarkers);
-
-    return () => {
-      // Remove markers on cleanup
-      newMarkers.forEach((marker) => {
-        marker.map = null;
-      });
-    };
-  }, [map, districts, onDistrictClick, markers]);
-
-  return null; // No direct rendering needed
+DistrictMarkers.propTypes = {
+  districts: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      position: PropTypes.shape({
+        lat: PropTypes.number.isRequired,
+        lng: PropTypes.number.isRequired,
+      }).isRequired,
+    })
+  ).isRequired,
+  onDistrictClick: PropTypes.func.isRequired,
 };
 
 export default React.memo(DistrictMarkers);
