@@ -1,12 +1,14 @@
 // src/components/Scene/SceneContainer.jsx
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import PropTypes from "prop-types";
 
 const SceneContainer = ({ selectedStation, selectedDistrict }) => {
   const [geojson, setGeojson] = useState(null);
   const [currentPlace, setCurrentPlace] = useState(null);
   const [isMapsLoaded, setIsMapsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
+  const mapRef = useRef(null); // Reference to the gmp-map-3d element
 
   useEffect(() => {
     if (window.google && window.google.maps) {
@@ -77,7 +79,7 @@ const SceneContainer = ({ selectedStation, selectedDistrict }) => {
       return;
     }
 
-    const mapElement = document.getElementById("three-d-map");
+    const mapElement = mapRef.current;
     if (mapElement) {
       const [lng, lat] = currentPlace.coordinates;
       mapElement.setAttribute("center", `${lat},${lng}`);
@@ -104,6 +106,7 @@ const SceneContainer = ({ selectedStation, selectedDistrict }) => {
         geojson.features && geojson.features.length > 0 ? (
           <gmp-map-3d
             id="three-d-map"
+            ref={mapRef}
             style={{ height: "100%", width: "100%" }}
             default-labels-disabled
           ></gmp-map-3d>
@@ -115,6 +118,27 @@ const SceneContainer = ({ selectedStation, selectedDistrict }) => {
       )}
     </div>
   );
+};
+
+SceneContainer.propTypes = {
+  selectedStation: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    place: PropTypes.string.isRequired,
+    position: PropTypes.shape({
+      lat: PropTypes.number.isRequired,
+      lng: PropTypes.number.isRequired,
+    }).isRequired,
+    district: PropTypes.string.isRequired,
+  }),
+  selectedDistrict: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    position: PropTypes.shape({
+      lat: PropTypes.number.isRequired,
+      lng: PropTypes.number.isRequired,
+    }).isRequired,
+    description: PropTypes.string,
+  }),
 };
 
 export default React.memo(SceneContainer);
