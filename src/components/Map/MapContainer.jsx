@@ -47,7 +47,7 @@ const PEAK_HOURS = [
   { start: 18, end: 20 },
 ];
 
-const BASE_STYLES = [];
+// Removed BASE_STYLES as styles are now managed via Google Console
 
 const MapContainer = ({
   onStationSelect,
@@ -150,13 +150,7 @@ const MapContainer = ({
       if (view.tilt !== undefined) map.setTilt(view.tilt);
       if (view.heading !== undefined) map.setHeading(view.heading);
 
-      if (view.name === "RouteView") {
-        map.setOptions({ styles: ROUTE_VIEW_STYLES });
-      } else if (view.name === "StationView") {
-        map.setOptions({ styles: STATION_VIEW_STYLES });
-      } else {
-        map.setOptions({ styles: BASE_STYLES });
-      }
+      // Removed style settings as styles are now managed via Google Console
 
       switch (view.name) {
         case "CityView":
@@ -200,10 +194,7 @@ const MapContainer = ({
           setDirections(result);
           const route = result.routes[0]?.legs[0];
           if (!route) return;
-          const fare = calculateFare(
-            route.distance.value,
-            route.duration.value
-          );
+          const fare = calculateFare(route.distance.value, route.duration.value);
           setFareInfo(fare);
           setViewBarText(
             `Distance: ${fare.distanceKm} km | Est Time: ${fare.estTime}`
@@ -432,7 +423,8 @@ const MapContainer = ({
     );
   }
 
-  if (!isLoaded) return <div className="loading-message">Loading map...</div>;
+  if (!isLoaded)
+    return <div className="loading-message">Loading map...</div>;
   if (stationsLoading || districtsLoading)
     return <div className="loading-message">Loading map data...</div>;
   if (stationsError || districtsError) {
@@ -498,6 +490,7 @@ const MapContainer = ({
           zoomControl: true,
           gestureHandling: "auto",
           rotateControl: false,
+          // Removed styles option
         }}
         onLoad={onLoadMap}
       >
