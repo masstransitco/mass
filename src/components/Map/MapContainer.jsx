@@ -21,7 +21,7 @@ import "./MapContainer.css";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // **Securely loaded from .env**
 const mapId = "94527c02bbb6243";
-const libraries = ["geometry", "places", "markers"];
+const libraries = ["geometry", "places", "marker"];
 const containerStyle = { width: "100%", height: "100vh" };
 const BASE_CITY_CENTER = { lat: 22.236, lng: 114.191 };
 const CITY_VIEW = {
