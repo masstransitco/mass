@@ -1,3 +1,5 @@
+/* src/components/Menu/MotionMenu.css */
+
 .motion-menu-container {
   position: fixed;
   bottom: 0;
@@ -7,6 +9,8 @@
   border-top-right-radius: 16px;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   padding: 16px;
+  box-sizing: border-box;
+  z-index: 1000; /* Ensure it stays above other elements */
 }
 
 .fare-info {
@@ -26,6 +30,7 @@
   align-items: center;
   justify-content: center;
 }
+
 .continue-button:hover {
   background: #1a4fbf;
 }
