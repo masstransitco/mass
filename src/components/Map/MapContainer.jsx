@@ -110,6 +110,9 @@ const MapContainer = ({
     }));
   }, [districtsData]);
 
+  // **Apply Gesture Handling Hook**
+  useMapGestures(map);
+
   const isPeakHour = useCallback((date) => {
     const hour = date.getHours();
     return PEAK_HOURS.some((p) => hour >= p.start && hour < p.end);
@@ -478,7 +481,7 @@ const MapContainer = ({
           mapTypeControl: false,
           fullscreenControl: false,
           zoomControl: true,
-          gestureHandling: "auto",
+          gestureHandling: false,
           rotateControl: false,
         }}
         onLoad={onLoadMap}
