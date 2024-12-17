@@ -1,43 +1,47 @@
 // src/components/Map/StationMarkers.jsx
 
-import React from "react";
-import { Marker } from "@react-google-maps/api";
+import React, { useEffect, useState } from "react";
+import { useGoogleMap } from "@react-google-maps/api";
 
 const StationMarkers = ({ stations, onStationClick }) => {
-  console.log("Rendering StationMarkers with stations:", stations); // **Added**
+  const map = useGoogleMap();
+  const [markers, setMarkers] = useState([]);
 
-  // Define icon after confirming window.google is available
-  const stationIcon = window.google
-    ? {
-        path: window.google.maps.SymbolPath.CIRCLE,
-        fillColor: "#276ef1",
-        fillOpacity: 1,
-        strokeColor: "#ffffff",
-        strokeWeight: 2,
-        scale: 7,
-      }
-    : null;
+  useEffect(() => {
+    if (!map || !window.google?.maps?.marker?.AdvancedMarkerElement) return;
 
-  if (!stationIcon) {
-    console.warn(
-      "window.google is not defined. Station markers will not display custom icons."
-    );
-    return null; // Or render default icons
-  }
+    // Clear any existing markers
+    markers.forEach((marker) => {
+      marker.map = null;
+    });
 
-  return (
-    <>
-      {stations.map((station) => (
-        <Marker
-          key={station.id}
-          position={station.position}
-          icon={stationIcon}
-          onClick={() => onStationClick(station)}
-          title={station.place}
-        />
-      ))}
-    </>
-  );
+    // Create new advanced markers for stations
+    const newMarkers = stations.map((station) => {
+      const marker = new window.google.maps.marker.AdvancedMarkerElement({
+        map,
+        position: station.position,
+        title: station.place,
+      });
+
+      // Add click listener for station
+      marker.addListener("click", () => {
+        if (onStationClick) onStationClick(station);
+      });
+
+      return marker;
+    });
+
+    setMarkers(newMarkers);
+
+    return () => {
+      // Remove markers on cleanup
+      newMarkers.forEach((marker) => {
+        marker.map = null;
+      });
+    };
+  }, [map, stations, onStationClick, markers]);
+
+  return null;
 };
 
 export default React.memo(StationMarkers);

@@ -4,17 +4,17 @@
 .view-bar {
   position: absolute;
   top: 10px;
-  left: 50%;
+  left: 5px;
   transform: translateX(-50%);
   display: flex;
   flex-direction: row; /* Changed to row for better alignment */
   align-items: center;
   background-color: rgba(255, 255, 255, 0.95);
   padding: 8px 16px;
-  border-radius: 9999px; /* Fully rounded corners */
+  border-radius: 50px; /* Fully rounded corners */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 10;
-  max-width: 90%;
+  width: 90vw;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 0.9em; /* Slightly smaller font */
   font-weight: 400; /* Regular weight */

@@ -1,43 +1,47 @@
 // src/components/Map/DistrictMarkers.jsx
 
-import React from "react";
-import { Marker } from "@react-google-maps/api";
+import React, { useEffect, useState } from "react";
+import { useGoogleMap } from "@react-google-maps/api";
 
 const DistrictMarkers = ({ districts, onDistrictClick }) => {
-  console.log("Rendering DistrictMarkers with districts:", districts); // **Added**
+  const map = useGoogleMap();
+  const [markers, setMarkers] = useState([]);
 
-  // Define icon after confirming window.google is available
-  const districtIcon = window.google
-    ? {
-        path: window.google.maps.SymbolPath.CIRCLE,
-        fillColor: "#e7e8ec",
-        fillOpacity: 1.0,
-        strokeColor: "#000",
-        strokeWeight: 1,
-        scale: 8,
-      }
-    : null;
+  useEffect(() => {
+    if (!map || !window.google?.maps?.marker?.AdvancedMarkerElement) return;
 
-  if (!districtIcon) {
-    console.warn(
-      "window.google is not defined. District markers will not display custom icons."
-    );
-    return null; // Or render default icons
-  }
+    // Clear any existing markers
+    markers.forEach((marker) => {
+      marker.map = null;
+    });
 
-  return (
-    <>
-      {districts.map((district) => (
-        <Marker
-          key={district.id}
-          position={district.position}
-          icon={districtIcon}
-          onClick={() => onDistrictClick(district)}
-          title={district.name}
-        />
-      ))}
-    </>
-  );
+    // Create new advanced markers
+    const newMarkers = districts.map((district) => {
+      const marker = new window.google.maps.marker.AdvancedMarkerElement({
+        map,
+        position: district.position,
+        title: district.name,
+      });
+
+      // Add click listener for district
+      marker.addListener("click", () => {
+        if (onDistrictClick) onDistrictClick(district);
+      });
+
+      return marker;
+    });
+
+    setMarkers(newMarkers);
+
+    return () => {
+      // Remove markers on cleanup
+      newMarkers.forEach((marker) => {
+        marker.map = null;
+      });
+    };
+  }, [map, districts, onDistrictClick, markers]);
+
+  return null; // No direct rendering needed
 };
 
 export default React.memo(DistrictMarkers);
