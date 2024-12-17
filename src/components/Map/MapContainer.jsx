@@ -22,7 +22,7 @@ import useMapGestures from "../../hooks/useMapGestures";
 
 import "./MapContainer.css";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours";
+const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // Replace with your actual API key
 const mapId = "94527c02bbb6243";
 const libraries = ["geometry", "places"];
 const containerStyle = { width: "100%", height: "100vh" };
@@ -281,6 +281,19 @@ const MapContainer = ({
     setDestinationStation(null);
     setDirections(null);
     setFareInfo(null);
+    if (onStationDeselect) onStationDeselect();
+  }, [navigateToView, onStationDeselect]);
+
+  const handleMotionMenuContinue = useCallback(() => {
+    // Handle the "Continue" button in MotionMenu
+    // Reset the view to CityView and reset state to SELECTING_DEPARTURE
+    navigateToView(CITY_VIEW);
+    setUserState(USER_STATES.SELECTING_DEPARTURE);
+    setDepartureStation(null);
+    setDestinationStation(null);
+    setDirections(null);
+    setFareInfo(null);
+    setShowCircles(false);
     if (onStationDeselect) onStationDeselect();
   }, [navigateToView, onStationDeselect]);
 
@@ -596,7 +609,7 @@ const MapContainer = ({
       </GoogleMap>
 
       {userState === USER_STATES.DISPLAY_FARE && fareInfo && (
-        <MotionMenu fareInfo={fareInfo} />
+        <MotionMenu fareInfo={fareInfo} onContinue={handleMotionMenuContinue} />
       )}
     </div>
   );
