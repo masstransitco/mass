@@ -40,6 +40,18 @@
   text-align: center;
 }
 
+/* InfoBox Container */
+.info-box-container {
+  position: absolute;
+  top: 80px; /* Below the ViewBar which is 60px high, plus 20px spacing */
+  left: 20px; /* Align to the left with some margin */
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Space between InfoBoxes */
+  z-index: 100; /* Ensure it sits above the map */
+} /* Added missing closing brace */
+
+/* Keyframes for the pulse animation */
 @keyframes pulse {
   0% {
     transform: translateX(-50%) scale(1);
@@ -109,4 +121,17 @@
   font-size: 1.2rem;
   text-align: center;
   margin-top: 20px;
+}
+
+/* Responsive adjustments for InfoBox */
+@media (max-width: 768px) {
+  .info-box-container {
+    left: 10px;
+    top: 70px;
+    width: 90%;
+  }
+
+  .info-box {
+    width: 100%;
+  }
 }

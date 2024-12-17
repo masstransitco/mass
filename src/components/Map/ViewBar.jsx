@@ -2,43 +2,39 @@
 
 import React from "react";
 import PropTypes from "prop-types";
-import { FaLocationArrow } from "react-icons/fa";
+import LocateMe from "./LocateMe"; // Import LocateMe component
 import "./ViewBar.css";
 
 const ViewBar = ({
   departure,
   arrival,
-  onLocateMe,
   viewBarText,
   onClearDeparture,
   onClearArrival,
   showChooseDestination,
   onChooseDestination,
   onHome,
-  isCityView,
+  onLocateMe, // Added onLocateMe prop
   isMeView,
+  isDistrictView,
+  isStationView,
 }) => {
+  // Determine if "View all stations" should be displayed
+  const showViewAllStations = isMeView || isDistrictView || isStationView;
+
   return (
     <div className="view-bar">
-      {/* Left side brand/logo section */}
-      <div className="view-bar-branding">
-        {!isMeView && (
-          <button
-            onClick={onLocateMe}
-            className="locate-me-button"
-            aria-label="Locate Me"
-          >
-            <FaLocationArrow />
-          </button>
-        )}
-        <span className="brand-name">MyTransit</span>
-      </div>
+      {/* Left: Locate Me Button (visible except on MeView) */}
+      {!isMeView && <LocateMe onLocateMe={onLocateMe} />}
 
-      {/* Center: Title and info */}
+      {/* Center: Title and Info */}
       <div className="view-bar-center">
-        <div className="view-bar-text">
+        {/* Pill-shaped Title Container */}
+        <div className="view-bar-title-pill">
           <h2>{viewBarText}</h2>
         </div>
+
+        {/* Departure and Arrival Information */}
         <div className="view-bar-info">
           {departure && (
             <div className="departure-info">
@@ -79,13 +75,13 @@ const ViewBar = ({
           </button>
         )}
 
-        {!isCityView && (
+        {showViewAllStations && (
           <button
             onClick={onHome}
-            className="view-all-districts-button"
-            aria-label="View all districts"
+            className="view-all-stations-button"
+            aria-label="View all stations"
           >
-            View all districts
+            View all stations
           </button>
         )}
       </div>
@@ -96,15 +92,16 @@ const ViewBar = ({
 ViewBar.propTypes = {
   departure: PropTypes.string,
   arrival: PropTypes.string,
-  onLocateMe: PropTypes.func.isRequired,
   viewBarText: PropTypes.string.isRequired,
   onClearDeparture: PropTypes.func.isRequired,
   onClearArrival: PropTypes.func.isRequired,
   showChooseDestination: PropTypes.bool.isRequired,
   onChooseDestination: PropTypes.func.isRequired,
   onHome: PropTypes.func.isRequired,
-  isCityView: PropTypes.bool.isRequired,
+  onLocateMe: PropTypes.func.isRequired, // Added to PropTypes
   isMeView: PropTypes.bool.isRequired,
+  isDistrictView: PropTypes.bool.isRequired,
+  isStationView: PropTypes.bool.isRequired,
 };
 
 export default ViewBar;

@@ -1,0 +1,32 @@
+/* src/components/Map/InfoBox.css */
+
+.info-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 14px;
+  width: 300px; /* Fixed width */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.info-text {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.95em;
+  color: #333;
+}
+
+.clear-button {
+  background: none;
+  border: none;
+  color: #d9534f; /* Red color for clear buttons */
+  cursor: pointer;
+  font-size: 0.85em;
+  text-decoration: underline;
+}
+
+.clear-button:hover {
+  color: #c9302c;
+}

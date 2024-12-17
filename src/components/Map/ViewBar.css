@@ -1,139 +1,121 @@
+/* src/components/Map/ViewBar.css */
+
+/* ViewBar Container */
 .view-bar {
   position: absolute;
-  top: 20px;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  align-items: stretch;
+  flex-direction: row; /* Changed to row for better alignment */
+  align-items: center;
   background-color: rgba(255, 255, 255, 0.95);
-  padding: 10px 20px;
-  border-radius: 9999px;
+  padding: 8px 16px;
+  border-radius: 9999px; /* Fully rounded corners */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 10;
   max-width: 90%;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.9em; /* Slightly smaller font */
+  font-weight: 400; /* Regular weight */
 }
 
-/* Branding section on the left */
-.view-bar-branding {
-  display: flex;
-  align-items: center;
-  margin-right: 20px;
-}
-
-.brand-name {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-left: 10px;
+/* Pill-Shaped Title Container */
+.view-bar-title-pill {
+  background-color: #f0f0f0;
+  border-radius: 9999px;
+  padding: 4px 12px;
+  margin: 0 16px; /* Adjusted margin for spacing */
   color: #333;
 }
 
-/* Locate Me button */
-.view-bar .locate-me-button {
-  background: #2171ec;
-  border: none;
-  cursor: pointer;
-  font-size: 1em;
-  color: #fff;
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.view-bar .locate-me-button:hover {
-  background: #195db7;
-}
-
-.view-bar-center {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.view-bar-text h2 {
+.view-bar-title-pill h2 {
   margin: 0;
-  font-size: 1.2em;
-  font-weight: 500;
-  color: #333;
+  font-size: 1em;
+  font-weight: 400;
 }
 
+/* Departure and Arrival Information */
 .view-bar-info {
   display: flex;
   flex-direction: column;
-  margin-top: 5px;
+  gap: 4px;
 }
 
 .departure-info,
 .arrival-info {
   display: flex;
   align-items: center;
-  margin-bottom: 5px;
-}
-
-.departure-info span,
-.arrival-info span {
-  margin-right: 10px;
-  font-weight: 500;
-  color: #333;
+  gap: 6px;
 }
 
 .clear-button {
-  background-color: #e74c3c;
-  color: white;
+  background: none;
   border: none;
-  width: 80px;
-  text-align: center;
-  padding: 5px 0;
-  border-radius: 20px;
+  color: #d9534f; /* Red color for clear buttons */
   cursor: pointer;
-  font-size: 0.9em;
-  font-weight: 500;
+  font-size: 0.8em;
+  text-decoration: underline;
 }
 
 .clear-button:hover {
-  background-color: #c0392b;
+  color: #c9302c;
 }
 
+/* Actions Container */
 .view-bar-actions {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-left: 20px;
+  margin-left: auto; /* Push actions to the right */
 }
 
-.choose-destination-button,
-.view-all-districts-button {
-  background: none;
+/* Choose Destination Button */
+.choose-destination-button {
+  background-color: #2171ec;
   border: none;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 0.9em;
+  transition: background-color 0.3s ease;
+}
+
+.choose-destination-button:hover {
+  background-color: #195db7;
+}
+
+/* View All Stations Button */
+.view-all-stations-button {
+  background: none;
+  border: 2px solid #2171ec;
   color: #2171ec;
-  text-decoration: underline;
-  font-weight: 400;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.choose-destination-button:hover,
-.view-all-districts-button:hover {
-  color: #195db7;
+.view-all-stations-button:hover {
+  background-color: #2171ec;
+  color: #fff;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Responsive Adjustments */
+@media (max-width: 767px) {
   .view-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 15px;
+    flex-direction: column; /* Stack vertically on small screens */
+    align-items: center;
   }
 
-  .view-bar-branding {
-    margin-bottom: 10px;
+  .view-bar-title-pill {
+    margin: 8px 0;
   }
 
   .view-bar-actions {
-    margin-top: 10px;
-    align-self: flex-end;
+    margin-left: 0;
+    margin-top: 8px;
   }
 }
