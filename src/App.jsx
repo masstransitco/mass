@@ -1,7 +1,10 @@
 // src/App.jsx
+
 import React, { useContext, useEffect, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import PropTypes from "prop-types";
+
 import { AuthContext } from "./context/AuthContext";
 import Header from "./components/Header/Header.jsx";
 import MapContainer from "./components/Map/MapContainer.jsx";
@@ -93,5 +96,10 @@ function App() {
     </div>
   );
 }
+
+App.propTypes = {
+  user: PropTypes.object,
+  loading: PropTypes.bool,
+};
 
 export default App;
