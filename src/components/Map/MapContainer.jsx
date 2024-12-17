@@ -31,10 +31,10 @@ const CITY_VIEW = {
   name: "CityView",
   center: BASE_CITY_CENTER,
   zoom: 11,
-  tilt: 45,
+  tilt: 0, // No tilt in CityView
   heading: 0,
 };
-const STATION_VIEW_ZOOM = 16;
+const STATION_VIEW_ZOOM = 18; // Updated zoom level
 const CIRCLE_DISTANCES = [500, 1000];
 
 const USER_STATES = {
@@ -235,8 +235,8 @@ const MapContainer = ({
         const stationView = {
           name: "StationView",
           center: station.position,
-          zoom: STATION_VIEW_ZOOM,
-          tilt: 0,
+          zoom: STATION_VIEW_ZOOM, // Zoom level 18
+          tilt: 60, // Tilt of 60 degrees
           heading: 0,
           districtName: station.district,
         };
@@ -331,10 +331,30 @@ const MapContainer = ({
 
   const handleDistrictClick = useCallback(
     (district) => {
+      // Filter stations within the selected district
+      const stationsInDistrict = stations.filter(
+        (st) => st.district === district.name
+      );
+
+      // Compute bounds to include all stations in the district
+      const bounds = new window.google.maps.LatLngBounds();
+      stationsInDistrict.forEach((st) => bounds.extend(st.position));
+
+      // If no stations in district, use district's position
+      if (stationsInDistrict.length === 0) {
+        bounds.extend(district.position);
+      }
+
+      // Adjust map view to fit bounds with a tilt of 45
+      map.fitBounds(bounds);
+      map.setTilt(45);
+
       const districtView = {
         name: "DistrictView",
-        center: district.position,
-        zoom: 14,
+        center: map.getCenter().toJSON(),
+        zoom: map.getZoom(),
+        tilt: 45,
+        heading: map.getHeading() || 0,
         districtName: district.name,
       };
       navigateToView(districtView);
@@ -347,7 +367,7 @@ const MapContainer = ({
         setViewBarText("Select departure station");
       }
     },
-    [navigateToView, userState, onDistrictSelect]
+    [navigateToView, stations, map, userState, onDistrictSelect]
   );
 
   const onLoadMap = useCallback((mapInstance) => {
@@ -356,6 +376,10 @@ const MapContainer = ({
 
   // Determine which stations to display
   const displayedStations = useMemo(() => {
+    if (currentView.name === "CityView") {
+      return []; // Hide station markers in CityView
+    }
+
     let filtered = baseFilteredStations;
 
     if (currentView.name === "DistrictView" && currentView.districtName) {
@@ -383,11 +407,11 @@ const MapContainer = ({
 
     return filtered;
   }, [
+    currentView,
     userState,
     departureStation,
     destinationStation,
     baseFilteredStations,
-    currentView,
   ]);
 
   const directionsOptions = useMemo(
@@ -481,7 +505,7 @@ const MapContainer = ({
           mapTypeControl: false,
           fullscreenControl: false,
           zoomControl: true,
-          gestureHandling: false,
+          gestureHandling: "none", // Correctly disable gesture controls
           rotateControl: false,
         }}
         onLoad={onLoadMap}
@@ -529,15 +553,19 @@ const MapContainer = ({
         )}
 
         {/* Integrate DistrictMarkers and StationMarkers */}
-        <DistrictMarkers
-          districts={districts}
-          onDistrictClick={handleDistrictClick}
-        />
+        {currentView.name === "CityView" && (
+          <DistrictMarkers
+            districts={districts}
+            onDistrictClick={handleDistrictClick}
+          />
+        )}
 
-        <StationMarkers
-          stations={displayedStations}
-          onStationClick={handleStationSelection}
-        />
+        {currentView.name !== "CityView" && (
+          <StationMarkers
+            stations={displayedStations}
+            onStationClick={handleStationSelection}
+          />
+        )}
       </GoogleMap>
 
       {userState === USER_STATES.DISPLAY_FARE && fareInfo && (
