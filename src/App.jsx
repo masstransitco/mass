@@ -66,7 +66,7 @@ function App() {
         className="main-content"
         style={{ display: "flex", flexDirection: "column", height: "100vh" }}
       >
-        {/* MapContainer occupies the remaining space */}
+        {/* MapContainer occupies the remaining vertical space above the scene */}
         <div style={{ flex: 1 }}>
           <MapContainer
             onStationSelect={handleStationSelect}
@@ -85,7 +85,7 @@ function App() {
           </div>
         )}
 
-        {/* Other Components */}
+        {/* Additional Components */}
         <PulseStrip className="pulse-strip" />
       </main>
       <MotionMenu className="motion-menu" />
