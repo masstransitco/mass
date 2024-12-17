@@ -194,7 +194,10 @@ const MapContainer = ({
           setDirections(result);
           const route = result.routes[0]?.legs[0];
           if (!route) return;
-          const fare = calculateFare(route.distance.value, route.duration.value);
+          const fare = calculateFare(
+            route.distance.value,
+            route.duration.value
+          );
           setFareInfo(fare);
           setViewBarText(
             `Distance: ${fare.distanceKm} km | Est Time: ${fare.estTime}`
@@ -423,8 +426,7 @@ const MapContainer = ({
     );
   }
 
-  if (!isLoaded)
-    return <div className="loading-message">Loading map...</div>;
+  if (!isLoaded) return <div className="loading-message">Loading map...</div>;
   if (stationsLoading || districtsLoading)
     return <div className="loading-message">Loading map data...</div>;
   if (stationsError || districtsError) {
