@@ -13,8 +13,6 @@ import InfoBox from "./InfoBox"; // Import InfoBox component
 import MotionMenu from "../Menu/MotionMenu";
 import UserOverlay from "./UserOverlay";
 import UserCircles from "./UserCircles";
-import DistrictMarkers from "./DistrictMarkers";
-import StationMarkers from "./StationMarkers";
 
 import useFetchGeoJSON from "../../hooks/useFetchGeoJSON";
 import useMapGestures from "../../hooks/useMapGestures";
@@ -46,8 +44,6 @@ const PEAK_HOURS = [
   { start: 8, end: 10 },
   { start: 18, end: 20 },
 ];
-
-// Removed BASE_STYLES as styles are now managed via Google Console
 
 const MapContainer = ({
   onStationSelect,
@@ -150,8 +146,6 @@ const MapContainer = ({
       if (view.tilt !== undefined) map.setTilt(view.tilt);
       if (view.heading !== undefined) map.setHeading(view.heading);
 
-      // Removed style settings as styles are now managed via Google Console
-
       switch (view.name) {
         case "CityView":
           setViewBarText("Hong Kong");
@@ -172,6 +166,7 @@ const MapContainer = ({
           setViewBarText("Stations near me");
           break;
         case "DriveView":
+          // In drive view, we set text after directions are fetched
           break;
         default:
           setViewBarText("");
@@ -359,7 +354,7 @@ const MapContainer = ({
     setMap(mapInstance);
   }, []);
 
-  // Filter stations for display based on currentView and userState
+  // Determine which stations to display
   const displayedStations = useMemo(() => {
     let filtered = baseFilteredStations;
 
@@ -370,7 +365,6 @@ const MapContainer = ({
       );
     }
 
-    // User state logic for showing selected stations
     if (userState === USER_STATES.SELECTING_DEPARTURE) {
       if (departureStation) {
         return [departureStation];
@@ -408,7 +402,7 @@ const MapContainer = ({
     []
   );
 
-  // Handle Map Fit to Bounds (Optional)
+  // Fit map to bounds once data is loaded
   useEffect(() => {
     if (map && stations.length > 0 && districts.length > 0) {
       const bounds = new window.google.maps.LatLngBounds();
@@ -417,6 +411,107 @@ const MapContainer = ({
       map.fitBounds(bounds);
     }
   }, [map, stations, districts]);
+
+  // State for markers
+  const [districtMarkers, setDistrictMarkers] = useState([]);
+  const [stationMarkers, setStationMarkers] = useState([]);
+
+  // Create District Markers
+  useEffect(() => {
+    if (!map || !window.google?.maps?.marker?.AdvancedMarkerElement) return;
+
+    // Clear existing district markers
+    districtMarkers.forEach((m) => (m.map = null));
+
+    if (currentView.name === "CityView") {
+      const newMarkers = districts.map((district) => {
+        const marker = new window.google.maps.marker.AdvancedMarkerElement({
+          map,
+          position: district.position,
+          title: district.name,
+        });
+
+        marker.addListener("click", () => {
+          handleDistrictClick(district);
+        });
+
+        return marker;
+      });
+
+      setDistrictMarkers(newMarkers);
+    } else {
+      setDistrictMarkers([]);
+    }
+
+    return () => {
+      districtMarkers.forEach((m) => (m.map = null));
+    };
+  }, [map, districts, currentView, handleDistrictClick]);
+
+  // Create Station Markers
+  useEffect(() => {
+    if (!map || !window.google?.maps?.marker?.AdvancedMarkerElement) return;
+
+    // Clear existing station markers
+    stationMarkers.forEach((m) => (m.map = null));
+
+    // In the city view, we show no stations (except if we have a departure already selected)
+    // In MeView, DistrictView, StationView, DriveView we show stations according to displayedStations
+    if (
+      currentView.name === "MeView" ||
+      currentView.name === "DistrictView" ||
+      currentView.name === "StationView" ||
+      currentView.name === "DriveView"
+    ) {
+      const newMarkers = displayedStations.map((station) => {
+        const marker = new window.google.maps.marker.AdvancedMarkerElement({
+          map,
+          position: station.position,
+          title: station.place,
+        });
+
+        marker.addListener("click", () => {
+          handleStationSelection(station);
+        });
+
+        return marker;
+      });
+      setStationMarkers(newMarkers);
+    } else if (
+      currentView.name === "CityView" &&
+      departureStation &&
+      userState !== USER_STATES.DISPLAY_FARE
+    ) {
+      // If we have a departure station selected and are back at city view for choosing arrival
+      const newMarkers = [departureStation].map((station) => {
+        const marker = new window.google.maps.marker.AdvancedMarkerElement({
+          map,
+          position: station.position,
+          title: station.place,
+        });
+
+        marker.addListener("click", () => {
+          handleStationSelection(station);
+        });
+
+        return marker;
+      });
+      setStationMarkers(newMarkers);
+    } else {
+      setStationMarkers([]);
+    }
+
+    return () => {
+      stationMarkers.forEach((m) => (m.map = null));
+    };
+  }, [
+    map,
+    displayedStations,
+    currentView,
+    departureStation,
+    userState,
+    handleStationSelection,
+  ]);
 
   if (loadError) {
     return (
@@ -457,9 +552,7 @@ const MapContainer = ({
         onChooseDestination={handleChooseDestination}
       />
 
-      {/* InfoBox Container */}
       <div className="info-box-container">
-        {/* Departure Info Box */}
         {departureStation && (
           <InfoBox
             type="Departure"
@@ -468,7 +561,6 @@ const MapContainer = ({
           />
         )}
 
-        {/* Arrival Info Box */}
         {destinationStation && (
           <InfoBox
             type="Arrival"
@@ -492,7 +584,6 @@ const MapContainer = ({
           zoomControl: true,
           gestureHandling: "auto",
           rotateControl: false,
-          // Removed styles option
         }}
         onLoad={onLoadMap}
       >
@@ -504,25 +595,6 @@ const MapContainer = ({
               const latOffset = r * 0.000009;
               return { lat: c.lat + latOffset, lng: c.lng };
             }}
-          />
-        )}
-
-        {/* DistrictMarkers rendered in CityView */}
-        {currentView.name === "CityView" && (
-          <DistrictMarkers
-            districts={districts}
-            onDistrictClick={handleDistrictClick}
-          />
-        )}
-
-        {/* StationMarkers rendered in specific views */}
-        {(currentView.name === "MeView" ||
-          currentView.name === "DistrictView" ||
-          currentView.name === "StationView" ||
-          currentView.name === "DriveView") && (
-          <StationMarkers
-            stations={displayedStations}
-            onStationClick={handleStationSelection}
           />
         )}
 
