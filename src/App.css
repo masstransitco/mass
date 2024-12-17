@@ -36,7 +36,7 @@ footer {
   ); /* Ensure this color is fully opaque */
   padding: 1rem;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px 1rgba (0, 0, 0, 0.1);
   z-index: 1000; /* Increased z-index for fixed positioning */
   width: 100%;
   height: 60px; /* Fixed height */
@@ -133,27 +133,6 @@ footer {
   height: 100%;
   color: #ffffff;
   font-size: 1.5rem;
-}
-
-/* Locate Me Button */
-.locate-me-button {
-  position: absolute;
-  top: 10px; /* Initial top position */
-  right: 10px; /* Initial right position */
-  transform: translateY(
-    -300%
-  ); /* Moves the button upwards by 3 times its height */
-  background-color: #ffffff; /* Example background color */
-  border: none;
-  border-radius: 50%;
-  width: 40px; /* Example width */
-  height: 40px; /* Example height */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  z-index: 1001; /* Ensure it sits above other elements */
 }
 
 /* Disable Right-Click Context Menu */
