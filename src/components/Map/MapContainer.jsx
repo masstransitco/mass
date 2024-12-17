@@ -83,11 +83,9 @@ const MapContainer = ({
     error: districtsError,
   } = useFetchGeoJSON("/districts.geojson");
 
-  useMapGestures(map);
-
+  // **Parse and Transform Stations Data**
   const stations = useMemo(() => {
-    if (!stationsData?.features) return [];
-    const processedStations = stationsData.features.map((feature) => ({
+    return stationsData.map((feature) => ({
       id: feature.id,
       place: feature.properties.Place,
       address: feature.properties.Address,
@@ -97,13 +95,11 @@ const MapContainer = ({
       },
       district: feature.properties.District,
     }));
-    console.log("Processed Stations:", processedStations); // **Added**
-    return processedStations;
   }, [stationsData]);
 
+  // **Parse and Transform Districts Data**
   const districts = useMemo(() => {
-    if (!districtsData?.features) return [];
-    const processedDistricts = districtsData.features.map((feature) => ({
+    return districtsData.map((feature) => ({
       id: feature.id,
       name: feature.properties.District,
       position: {
@@ -112,8 +108,6 @@ const MapContainer = ({
       },
       description: feature.properties.Description,
     }));
-    console.log("Processed Districts:", processedDistricts); // **Added**
-    return processedDistricts;
   }, [districtsData]);
 
   const isPeakHour = useCallback((date) => {
