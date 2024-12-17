@@ -34,7 +34,7 @@ const CITY_VIEW = {
   tilt: 0,
   heading: 0,
 };
-const STATION_VIEW_ZOOM = 18; 
+const STATION_VIEW_ZOOM = 18;
 const CIRCLE_DISTANCES = [500, 1000];
 
 const USER_STATES = {
@@ -341,7 +341,10 @@ const MapContainer = ({
 
       // Filter stations within the selected district
       const stationsInDistrict = stations.filter(
-        (st) => st.district && st.district.trim().toLowerCase() === district.name.trim().toLowerCase()
+        (st) =>
+          st.district &&
+          st.district.trim().toLowerCase() ===
+            district.name.trim().toLowerCase()
       );
 
       const bounds = new window.google.maps.LatLngBounds();
@@ -392,7 +395,9 @@ const MapContainer = ({
     let filtered = baseFilteredStations;
 
     if (currentView.name === "DistrictView" && currentView.districtName) {
-      const normalizedDistrictName = currentView.districtName.trim().toLowerCase();
+      const normalizedDistrictName = currentView.districtName
+        .trim()
+        .toLowerCase();
       filtered = filtered.filter(
         (st) =>
           st.district &&
