@@ -62,18 +62,30 @@ function App() {
     <div className="App">
       <Header user={user} />
       <Analytics />
-      <main className="main-content">
-        <MapContainer
-          onStationSelect={handleStationSelect}
-          onStationDeselect={handleStationDeselect}
-          onDistrictSelect={handleDistrictSelect}
-        />
-        {showSceneContainer && (
-          <SceneContainer
-            selectedStation={selectedStation}
-            selectedDistrict={selectedDistrict}
+      <main
+        className="main-content"
+        style={{ display: "flex", flexDirection: "column", height: "100vh" }}
+      >
+        {/* MapContainer occupies the remaining space */}
+        <div style={{ flex: 1 }}>
+          <MapContainer
+            onStationSelect={handleStationSelect}
+            onStationDeselect={handleStationDeselect}
+            onDistrictSelect={handleDistrictSelect}
           />
+        </div>
+
+        {/* SceneContainer occupies the bottom 30% of the viewport */}
+        {showSceneContainer && (
+          <div style={{ height: "30vh" }}>
+            <SceneContainer
+              selectedStation={selectedStation}
+              selectedDistrict={selectedDistrict}
+            />
+          </div>
         )}
+
+        {/* Other Components */}
         <PulseStrip className="pulse-strip" />
       </main>
       <MotionMenu className="motion-menu" />
