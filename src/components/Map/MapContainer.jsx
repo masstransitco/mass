@@ -101,7 +101,7 @@ const MapContainer = ({
   const currentView = viewHistory[viewHistory.length - 1];
 
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours",
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     libraries,
   });
 
