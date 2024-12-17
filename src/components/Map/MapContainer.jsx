@@ -9,20 +9,20 @@ import {
 } from "@react-google-maps/api";
 
 import ViewBar from "./ViewBar";
-import InfoBox from "./InfoBox"; // Import InfoBox component
+import InfoBox from "./InfoBox";
 import MotionMenu from "../Menu/MotionMenu";
 import UserOverlay from "./UserOverlay";
 import UserCircles from "./UserCircles";
 
-import DistrictMarkers from "./DistrictMarkers"; // Import DistrictMarkers
-import StationMarkers from "./StationMarkers"; // Import StationMarkers
+import DistrictMarkers from "./DistrictMarkers";
+import StationMarkers from "./StationMarkers";
 
 import useFetchGeoJSON from "../../hooks/useFetchGeoJSON";
 import useMapGestures from "../../hooks/useMapGestures";
 
 import "./MapContainer.css";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // Securely loaded from .env
+const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours";
 const mapId = "94527c02bbb6243";
 const libraries = ["geometry", "places"];
 const containerStyle = { width: "100%", height: "100vh" };
@@ -31,10 +31,10 @@ const CITY_VIEW = {
   name: "CityView",
   center: BASE_CITY_CENTER,
   zoom: 11,
-  tilt: 0, // No tilt in CityView
+  tilt: 0,
   heading: 0,
 };
-const STATION_VIEW_ZOOM = 18; // Updated zoom level
+const STATION_VIEW_ZOOM = 18; 
 const CIRCLE_DISTANCES = [500, 1000];
 
 const USER_STATES = {
@@ -83,7 +83,6 @@ const MapContainer = ({
     error: districtsError,
   } = useFetchGeoJSON("/districts.geojson");
 
-  // **Parse and Transform Stations Data**
   const stations = useMemo(() => {
     return stationsData.map((feature) => ({
       id: feature.id,
@@ -97,7 +96,6 @@ const MapContainer = ({
     }));
   }, [stationsData]);
 
-  // **Parse and Transform Districts Data**
   const districts = useMemo(() => {
     return districtsData.map((feature) => ({
       id: feature.id,
@@ -110,7 +108,6 @@ const MapContainer = ({
     }));
   }, [districtsData]);
 
-  // **Apply Gesture Handling Hook**
   useMapGestures(map);
 
   const isPeakHour = useCallback((date) => {
@@ -139,7 +136,10 @@ const MapContainer = ({
 
   const navigateToView = useCallback(
     (view) => {
-      if (!map) return;
+      if (!map) {
+        console.warn("Map not ready, cannot navigate to view yet.");
+        return;
+      }
       setViewHistory((prev) => [...prev, view]);
       map.panTo(view.center);
       map.setZoom(view.zoom);
@@ -235,8 +235,8 @@ const MapContainer = ({
         const stationView = {
           name: "StationView",
           center: station.position,
-          zoom: STATION_VIEW_ZOOM, // Zoom level 18
-          tilt: 60, // Tilt of 60 degrees
+          zoom: STATION_VIEW_ZOOM,
+          tilt: 60,
           heading: 0,
           districtName: station.district,
         };
@@ -331,21 +331,26 @@ const MapContainer = ({
 
   const handleDistrictClick = useCallback(
     (district) => {
+      if (!map) {
+        console.warn("Map not ready, cannot handle district click.");
+        return;
+      }
+
+      // Log the district click event
+      console.log("District clicked:", district);
+
       // Filter stations within the selected district
       const stationsInDistrict = stations.filter(
-        (st) => st.district === district.name
+        (st) => st.district && st.district.trim().toLowerCase() === district.name.trim().toLowerCase()
       );
 
-      // Compute bounds to include all stations in the district
       const bounds = new window.google.maps.LatLngBounds();
       stationsInDistrict.forEach((st) => bounds.extend(st.position));
 
-      // If no stations in district, use district's position
       if (stationsInDistrict.length === 0) {
         bounds.extend(district.position);
       }
 
-      // Adjust map view to fit bounds with a tilt of 45
       map.fitBounds(bounds);
       map.setTilt(45);
 
@@ -367,25 +372,31 @@ const MapContainer = ({
         setViewBarText("Select departure station");
       }
     },
-    [navigateToView, stations, map, userState, onDistrictSelect]
+    [map, navigateToView, stations, userState, onDistrictSelect]
   );
 
   const onLoadMap = useCallback((mapInstance) => {
     setMap(mapInstance);
   }, []);
 
-  // Determine which stations to display
   const displayedStations = useMemo(() => {
+    console.log("Current View:", currentView);
+    console.log("Stations:", stations);
+    console.log("Districts:", districts);
+
     if (currentView.name === "CityView") {
-      return []; // Hide station markers in CityView
+      // Hide station markers in CityView
+      return [];
     }
 
     let filtered = baseFilteredStations;
 
     if (currentView.name === "DistrictView" && currentView.districtName) {
-      // Only show stations in the selected district
+      const normalizedDistrictName = currentView.districtName.trim().toLowerCase();
       filtered = filtered.filter(
-        (st) => st.district === currentView.districtName
+        (st) =>
+          st.district &&
+          st.district.trim().toLowerCase() === normalizedDistrictName
       );
     }
 
@@ -412,6 +423,8 @@ const MapContainer = ({
     departureStation,
     destinationStation,
     baseFilteredStations,
+    stations,
+    districts,
   ]);
 
   const directionsOptions = useMemo(
@@ -426,7 +439,6 @@ const MapContainer = ({
     []
   );
 
-  // Fit map to bounds once data is loaded
   useEffect(() => {
     if (map && stations.length > 0 && districts.length > 0) {
       const bounds = new window.google.maps.LatLngBounds();
@@ -505,7 +517,7 @@ const MapContainer = ({
           mapTypeControl: false,
           fullscreenControl: false,
           zoomControl: true,
-          gestureHandling: "none", // Correctly disable gesture controls
+          gestureHandling: "none",
           rotateControl: false,
         }}
         onLoad={onLoadMap}
@@ -552,7 +564,6 @@ const MapContainer = ({
           </>
         )}
 
-        {/* Integrate DistrictMarkers and StationMarkers */}
         {currentView.name === "CityView" && (
           <DistrictMarkers
             districts={districts}
