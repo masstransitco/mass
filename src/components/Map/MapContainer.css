@@ -84,26 +84,6 @@
   border-radius: 8px;
 }
 
-.locate-me-button {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  z-index: 1000;
-  font-size: 20px;
-}
-
-.locate-me-button:hover {
-  background-color: #f0f0f0;
-}
-
 .choose-destination-button:hover {
   transform: translateX(-50%) scale(1.05);
   box-shadow: 0 0 20px rgba(0, 165, 0, 1);
