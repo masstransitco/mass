@@ -84,8 +84,8 @@ const MapContainer = ({
   } = useFetchGeoJSON("/districts.geojson");
 
   const stations = useMemo(() => {
-    return stationsData.map((feature) => ({
-      id: feature.id,
+    return stationsData.map((feature, index) => ({
+      id: feature.id != null ? String(feature.id) : `station-${index}`,
       place: feature.properties.Place,
       address: feature.properties.Address,
       position: {
@@ -97,8 +97,8 @@ const MapContainer = ({
   }, [stationsData]);
 
   const districts = useMemo(() => {
-    return districtsData.map((feature) => ({
-      id: feature.id,
+    return districtsData.map((feature, index) => ({
+      id: feature.id != null ? String(feature.id) : `district-${index}`,
       name: feature.properties.District,
       position: {
         lat: feature.geometry.coordinates[1],
@@ -160,6 +160,7 @@ const MapContainer = ({
           }
           break;
         case "StationView":
+          // StationView should show "continue to select destination" if departure chosen
           setViewBarText(view.districtName || "Station");
           break;
         case "MeView":
@@ -223,6 +224,7 @@ const MapContainer = ({
     setDirections(null);
     setFareInfo(null);
     setShowCircles(false);
+    // Reset user state back to SELECTING_DEPARTURE
     setUserState(USER_STATES.SELECTING_DEPARTURE);
     if (onStationDeselect) onStationDeselect();
   }, [navigateToView, onStationDeselect]);
@@ -230,8 +232,10 @@ const MapContainer = ({
   const handleStationSelection = useCallback(
     (station) => {
       if (userState === USER_STATES.SELECTING_DEPARTURE) {
+        // User choosing departure station
         setDepartureStation(station);
         if (onStationSelect) onStationSelect(station);
+        // Navigate to StationView and stay in SELECTING_DEPARTURE until user presses "Continue"
         const stationView = {
           name: "StationView",
           center: station.position,
@@ -241,8 +245,9 @@ const MapContainer = ({
           districtName: station.district,
         };
         navigateToView(stationView);
-        setUserState(USER_STATES.SELECTING_ARRIVAL);
+        // DO NOT set userState to SELECTING_ARRIVAL yet. Wait for user to press "Continue".
       } else if (userState === USER_STATES.SELECTING_ARRIVAL) {
+        // User choosing arrival station
         setDestinationStation(station);
         setUserState(USER_STATES.DISPLAY_FARE);
         navigateToDriveView();
@@ -269,6 +274,8 @@ const MapContainer = ({
   }, [navigateToView]);
 
   const handleChooseDestination = useCallback(() => {
+    // User pressed the "Continue to select destination" button
+    // Now we switch to SELECTING_ARRIVAL and show the city again.
     navigateToView(CITY_VIEW);
     setUserState(USER_STATES.SELECTING_ARRIVAL);
     setDestinationStation(null);
@@ -278,6 +285,7 @@ const MapContainer = ({
   }, [navigateToView, onStationDeselect]);
 
   const locateMe = useCallback(() => {
+    // Keep userState as is. If user is in SELECTING_ARRIVAL or DEPARTURE, do not revert.
     setDirections(null);
     setFareInfo(null);
     if (!map) return;
@@ -303,8 +311,11 @@ const MapContainer = ({
   }, [map, navigateToView]);
 
   useEffect(() => {
-    if (map) locateMe();
-  }, [map, locateMe]);
+    // Initially locate user on map load
+    if (map && !userLocation) {
+      locateMe();
+    }
+  }, [map, locateMe, userLocation]);
 
   const computeDistance = useCallback(
     (pos) => {
@@ -336,10 +347,8 @@ const MapContainer = ({
         return;
       }
 
-      // Log the district click event
       console.log("District clicked:", district);
 
-      // Filter stations within the selected district
       const stationsInDistrict = stations.filter(
         (st) =>
           st.district &&
@@ -388,7 +397,6 @@ const MapContainer = ({
     console.log("Districts:", districts);
 
     if (currentView.name === "CityView") {
-      // Hide station markers in CityView
       return [];
     }
 
@@ -406,18 +414,21 @@ const MapContainer = ({
     }
 
     if (userState === USER_STATES.SELECTING_DEPARTURE) {
+      // If a departure station is chosen, show it. Else show filtered.
       if (departureStation) {
         return [departureStation];
       } else {
         return filtered;
       }
     } else if (userState === USER_STATES.SELECTING_ARRIVAL) {
+      // In selecting arrival, if destination chosen, show both departure and destination
       if (destinationStation) {
         return [departureStation, destinationStation].filter(Boolean);
       } else {
         return [departureStation].filter(Boolean);
       }
     } else if (userState === USER_STATES.DISPLAY_FARE) {
+      // In display fare, show only departure and destination
       return [departureStation, destinationStation].filter(Boolean);
     }
 
