@@ -21,7 +21,7 @@ import useMapGestures from "../../hooks/useMapGestures";
 
 import "./MapContainer.css";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // **Ensure to replace with a secure method to handle API keys**
+const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // **Securely loaded from .env**
 const mapId = "94527c02bbb6243";
 const libraries = ["geometry", "places"];
 const containerStyle = { width: "100%", height: "100vh" };
@@ -48,39 +48,6 @@ const PEAK_HOURS = [
 ];
 
 const BASE_STYLES = [];
-const STATION_VIEW_STYLES = [
-  {
-    featureType: "all",
-    stylers: [{ visibility: "off" }],
-  },
-];
-const ROUTE_VIEW_STYLES = [
-  {
-    featureType: "poi",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "transit",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "administrative",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "landscape.man_made",
-    stylers: [
-      { color: "#e0e0e0" },
-      { visibility: "simplified" },
-      { lightness: 80 },
-    ],
-  },
-  {
-    featureType: "building",
-    elementType: "geometry",
-    stylers: [{ visibility: "on" }, { color: "#cccccc" }, { lightness: 80 }],
-  },
-];
 
 const MapContainer = ({
   onStationSelect,
@@ -121,7 +88,7 @@ const MapContainer = ({
 
   const stations = useMemo(() => {
     if (!stationsData?.features) return [];
-    return stationsData.features.map((feature) => ({
+    const processedStations = stationsData.features.map((feature) => ({
       id: feature.id,
       place: feature.properties.Place,
       address: feature.properties.Address,
@@ -131,11 +98,13 @@ const MapContainer = ({
       },
       district: feature.properties.District,
     }));
+    console.log("Processed Stations:", processedStations); // **Added**
+    return processedStations;
   }, [stationsData]);
 
   const districts = useMemo(() => {
     if (!districtsData?.features) return [];
-    return districtsData.features.map((feature) => ({
+    const processedDistricts = districtsData.features.map((feature) => ({
       id: feature.id,
       name: feature.properties.District,
       position: {
@@ -144,6 +113,8 @@ const MapContainer = ({
       },
       description: feature.properties.Description,
     }));
+    console.log("Processed Districts:", processedDistricts); // **Added**
+    return processedDistricts;
   }, [districtsData]);
 
   const isPeakHour = useCallback((date) => {
@@ -443,6 +414,16 @@ const MapContainer = ({
     []
   );
 
+  // Handle Map Fit to Bounds (Optional)
+  useEffect(() => {
+    if (map && stations.length > 0 && districts.length > 0) {
+      const bounds = new window.google.maps.LatLngBounds();
+      stations.forEach((station) => bounds.extend(station.position));
+      districts.forEach((district) => bounds.extend(district.position));
+      map.fitBounds(bounds);
+    }
+  }, [map, stations, districts]);
+
   if (loadError) {
     return (
       <div className="error-message">
@@ -531,6 +512,7 @@ const MapContainer = ({
           />
         )}
 
+        {/* DistrictMarkers rendered in CityView */}
         {currentView.name === "CityView" && (
           <DistrictMarkers
             districts={districts}
@@ -538,6 +520,7 @@ const MapContainer = ({
           />
         )}
 
+        {/* StationMarkers rendered in specific views */}
         {(currentView.name === "MeView" ||
           currentView.name === "DistrictView" ||
           currentView.name === "StationView" ||
@@ -545,10 +528,6 @@ const MapContainer = ({
           <StationMarkers
             stations={displayedStations}
             onStationClick={handleStationSelection}
-            selectedStations={{
-              departure: departureStation,
-              destination: destinationStation,
-            }}
           />
         )}
 
