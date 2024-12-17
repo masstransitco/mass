@@ -1,0 +1,31 @@
+.motion-menu-container {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #fff;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+}
+
+.fare-info {
+  margin-bottom: 16px;
+}
+
+.continue-button {
+  width: 100%;
+  padding: 12px;
+  background: #276ef1;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.continue-button:hover {
+  background: #1a4fbf;
+}
