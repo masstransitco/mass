@@ -1,17 +1,35 @@
 // src/components/Scene/SceneContainer.jsx
-import { useJsApiLoader } from "@react-google-maps/api";
 import React, { useEffect, useState } from "react";
 
 const SceneContainer = ({ selectedStation, selectedDistrict }) => {
   const [geojson, setGeojson] = useState(null);
   const [currentPlace, setCurrentPlace] = useState(null);
+  const [isMapsLoaded, setIsMapsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(null);
 
-  // Initialize useJsApiLoader with 'alpha' version and required libraries
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours", // Use environment variables for security
-    version: "alpha", // Load the alpha version for experimental 3D features
-    libraries: ["marker", "geometry", "places", "maps3d"], // Include necessary libraries
-  });
+  useEffect(() => {
+    // Check if the Google Maps API is loaded
+    if (window.google && window.google.maps) {
+      setIsMapsLoaded(true);
+    } else {
+      const interval = setInterval(() => {
+        if (window.google && window.google.maps) {
+          setIsMapsLoaded(true);
+          clearInterval(interval);
+        }
+      }, 1000);
+
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        if (!isMapsLoaded) {
+          setLoadError("Google Maps API failed to load.");
+          clearInterval(interval);
+        }
+      }, 10000);
+
+      return () => clearInterval(interval);
+    }
+  }, [isMapsLoaded]);
 
   useEffect(() => {
     if (selectedStation) {
@@ -47,7 +65,7 @@ const SceneContainer = ({ selectedStation, selectedDistrict }) => {
   }, []);
 
   useEffect(() => {
-    if (!isLoaded) return; // Ensure Google Maps API is loaded
+    if (!isMapsLoaded) return; // Ensure Google Maps API is loaded
     if (loadError) {
       console.error("Error loading Google Maps API:", loadError);
       return;
@@ -73,13 +91,13 @@ const SceneContainer = ({ selectedStation, selectedDistrict }) => {
     };
 
     initializeMap();
-  }, [isLoaded, loadError, currentPlace]);
+  }, [isMapsLoaded, loadError, currentPlace]);
 
   if (loadError) {
     return <p>Error loading Google Maps API.</p>;
   }
 
-  if (!isLoaded) {
+  if (!isMapsLoaded) {
     return <p>Loading Google Maps...</p>;
   }
 
