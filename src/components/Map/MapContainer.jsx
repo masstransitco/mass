@@ -70,12 +70,11 @@ const MapContainer = ({
   const [viewBarText, setViewBarText] = useState("Stations near me");
 
   // Scene container bottom sheet minimized or expanded
-  // Visible only on SELECTED_DEPARTURE state
   const [sceneMinimized, setSceneMinimized] = useState(false);
 
   const currentView = viewHistory[viewHistory.length - 1];
 
-  // Show scene only on SELECTED_DEPARTURE, hidden otherwise
+  // Show scene only on SELECTED_DEPARTURE
   const showSceneContainer = userState === USER_STATES.SELECTED_DEPARTURE;
 
   const { isLoaded, loadError } = useJsApiLoader({
@@ -241,7 +240,6 @@ const MapContainer = ({
   ]);
 
   const handleHomeClick = useCallback(() => {
-    // "View all stations" only changes the view
     navigateToView(CITY_VIEW);
     minimizeScene();
   }, [navigateToView, minimizeScene]);
@@ -258,7 +256,6 @@ const MapContainer = ({
           stationName: station.place,
         });
         setUserState(USER_STATES.SELECTED_DEPARTURE);
-        // Show scene container since now selected departure
         expandScene();
       } else if (userState === USER_STATES.SELECTING_ARRIVAL) {
         setDestinationStation(station);
@@ -300,7 +297,6 @@ const MapContainer = ({
     setUserState(USER_STATES.SELECTING_ARRIVAL);
     setDestinationStation(null);
     setDirections(null);
-    // Hide scene container since user now is selecting arrival
     minimizeScene();
     if (onStationDeselect) onStationDeselect();
   }, [navigateToView, onStationDeselect, setUserState, minimizeScene]);
@@ -362,7 +358,7 @@ const MapContainer = ({
   const handleDistrictClick = useCallback(
     (district) => {
       if (!map) {
-        console.warn("Map not ready, cannot handle district click.");
+        console.warn("Map not ready.");
         return;
       }
 
@@ -482,15 +478,14 @@ const MapContainer = ({
     );
   }
 
-  // Scene container visible only on SELECTED_DEPARTURE state
   const sceneVisibleClass =
     showSceneContainer && !sceneMinimized ? "visible" : "minimized";
 
   return (
     <div className="map-container">
       <ViewBar
-        departure={null} // Hide departure text line from viewbar
-        arrival={null} // Hide arrival text line from viewbar
+        departure={null}
+        arrival={null}
         viewBarText={viewBarText}
         onHome={handleHomeClick}
         onLocateMe={locateMe}
@@ -538,9 +533,7 @@ const MapContainer = ({
                 {sceneMinimized ? "Expand 3D Map" : "Minimize 3D Map"}
               </button>
             </div>
-            <SceneContainer
-              center={departureStation.position} // always center on departure station
-            />
+            <SceneContainer center={departureStation.position} />
           </div>
         )}
       </div>
