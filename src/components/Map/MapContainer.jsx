@@ -22,7 +22,7 @@ import PropTypes from "prop-types";
 
 import "./MapContainer.css";
 
-const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours";
 const mapId = "94527c02bbb6243";
 const libraries = ["geometry", "places"];
 const containerStyle = { width: "100%", height: "100vh" };
