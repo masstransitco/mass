@@ -146,3 +146,17 @@ footer {
   -ms-user-select: none; /* Disable text selection on IE/Edge */
   user-select: none; /* Disable text selection */
 }
+
+.motion-menu-wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  transform: translateY(100%);
+  transition: transform 0.5s ease-in-out;
+  z-index: 1000; /* Ensure it appears above other elements */
+}
+
+.motion-menu-wrapper.visible {
+  transform: translateY(0);
+}

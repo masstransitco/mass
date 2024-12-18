@@ -3,7 +3,11 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import PropTypes from "prop-types";
+
+// Removed PropTypes import as it's no longer needed
+// import PropTypes from "prop-types";
+
+import USER_STATES from "./constants/userStates"; // Import user states
 
 import { AuthContext } from "./context/AuthContext";
 import Header from "./components/Header/Header.jsx";
@@ -32,15 +36,15 @@ function App() {
   const [selectedStation, setSelectedStation] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [fareInfo, setFareInfo] = useState(null);
-
-  // Center for SceneContainer
   const [sceneCenter, setSceneCenter] = useState(null);
+  const [userState, setUserState] = useState(USER_STATES.SELECTING_DEPARTURE);
 
   // SceneContainer visible if we have either a selectedStation or a selectedDistrict
-  const showSceneContainer = selectedStation || selectedDistrict;
+  const showSceneContainer =
+    userState === USER_STATES.SELECTED_DEPARTURE ||
+    userState === USER_STATES.SELECTED_ARRIVAL;
 
   useEffect(() => {
-    // If a station is selected, clear district and fareInfo, set SceneContainer center
     if (selectedStation) {
       setSelectedDistrict(null);
       setFareInfo(null);
@@ -52,7 +56,6 @@ function App() {
   }, [selectedStation]);
 
   useEffect(() => {
-    // If a district is selected, clear station and fareInfo, set SceneContainer center
     if (selectedDistrict) {
       setSelectedStation(null);
       setFareInfo(null);
@@ -65,30 +68,34 @@ function App() {
 
   const handleStationSelect = (station) => {
     setSelectedStation(station);
+    setUserState(USER_STATES.SELECTED_DEPARTURE);
   };
 
   const handleStationDeselect = () => {
     setSelectedStation(null);
     setFareInfo(null);
     setSceneCenter(null);
+    setUserState(USER_STATES.SELECTING_DEPARTURE);
   };
 
   const handleDistrictSelect = (district) => {
     setSelectedDistrict(district);
+    setUserState(USER_STATES.SELECTING_DEPARTURE); // Remain in SELECTING_DEPARTURE
   };
 
   const handleFareInfo = (info) => {
     setFareInfo(info);
+    setUserState(USER_STATES.DISPLAY_FARE);
   };
 
   const handleMotionMenuContinue = () => {
     console.log("Continuing to next step...");
-    // Implement navigation or state changes for the next step
-    // For example, reset states to allow new selections
+    // Reset states to allow new selections
     setFareInfo(null);
     setSelectedStation(null);
     setSelectedDistrict(null);
     setSceneCenter(null);
+    setUserState(USER_STATES.SELECTING_DEPARTURE);
   };
 
   if (loading) {
@@ -110,12 +117,13 @@ function App() {
             onStationDeselect={handleStationDeselect}
             onDistrictSelect={handleDistrictSelect}
             onFareInfo={handleFareInfo} // Passed onFareInfo callback
+            userState={userState} // Pass current user state
           />
         </div>
 
         {/* SceneContainer occupies the bottom 30% of the viewport */}
         {showSceneContainer && sceneCenter && (
-          <div style={{ height: "30vh" }}>
+          <div style={{ height: "30vh", transition: "all 0.5s ease-in-out" }}>
             <SceneContainer center={sceneCenter} />
           </div>
         )}
@@ -134,9 +142,10 @@ function App() {
   );
 }
 
-App.propTypes = {
-  user: PropTypes.object,
-  loading: PropTypes.bool,
-};
+// Removed App.propTypes as App does not receive props
+// App.propTypes = {
+//   user: PropTypes.object,
+//   loading: PropTypes.bool,
+// };
 
 export default App;
