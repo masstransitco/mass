@@ -4,15 +4,10 @@ import React, { useContext, useEffect, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// Removed PropTypes import as it's no longer needed
-// import PropTypes from "prop-types";
-
 import USER_STATES from "./constants/userStates"; // Import user states
-
 import { AuthContext } from "./context/AuthContext";
 import Header from "./components/Header/Header.jsx";
 import MapContainer from "./components/Map/MapContainer.jsx";
-import SceneContainer from "./components/Scene/SceneContainer.jsx";
 import MotionMenu from "./components/Menu/MotionMenu.jsx";
 import PulseStrip from "./components/PulseStrip/PulseStrip.jsx";
 import Footer from "./components/Footer/Footer.jsx";
@@ -36,33 +31,21 @@ function App() {
   const [selectedStation, setSelectedStation] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [fareInfo, setFareInfo] = useState(null);
-  const [sceneCenter, setSceneCenter] = useState(null);
   const [userState, setUserState] = useState(USER_STATES.SELECTING_DEPARTURE);
 
-  // SceneContainer visible if we have either a selectedStation or a selectedDistrict
-  const showSceneContainer =
-    userState === USER_STATES.SELECTED_DEPARTURE ||
-    userState === USER_STATES.SELECTED_ARRIVAL;
-
   useEffect(() => {
+    // If a station is selected, clear district and fareInfo
     if (selectedStation) {
       setSelectedDistrict(null);
       setFareInfo(null);
-      setSceneCenter({
-        lat: selectedStation.position.lat,
-        lng: selectedStation.position.lng,
-      });
     }
   }, [selectedStation]);
 
   useEffect(() => {
+    // If a district is selected, clear station and fareInfo
     if (selectedDistrict) {
       setSelectedStation(null);
       setFareInfo(null);
-      setSceneCenter({
-        lat: selectedDistrict.position.lat,
-        lng: selectedDistrict.position.lng,
-      });
     }
   }, [selectedDistrict]);
 
@@ -74,13 +57,12 @@ function App() {
   const handleStationDeselect = () => {
     setSelectedStation(null);
     setFareInfo(null);
-    setSceneCenter(null);
     setUserState(USER_STATES.SELECTING_DEPARTURE);
   };
 
   const handleDistrictSelect = (district) => {
     setSelectedDistrict(district);
-    setUserState(USER_STATES.SELECTING_DEPARTURE); // Remain in SELECTING_DEPARTURE
+    setUserState(USER_STATES.SELECTING_DEPARTURE);
   };
 
   const handleFareInfo = (info) => {
@@ -89,12 +71,10 @@ function App() {
   };
 
   const handleMotionMenuContinue = () => {
-    console.log("Continuing to next step...");
-    // Reset states to allow new selections
+    // After finishing fare, reset state for new selection
     setFareInfo(null);
     setSelectedStation(null);
     setSelectedDistrict(null);
-    setSceneCenter(null);
     setUserState(USER_STATES.SELECTING_DEPARTURE);
   };
 
@@ -110,29 +90,20 @@ function App() {
         className="main-content"
         style={{ display: "flex", flexDirection: "column", height: "100vh" }}
       >
-        {/* MapContainer occupies the remaining vertical space above the scene */}
         <div style={{ flex: 1 }}>
           <MapContainer
             onStationSelect={handleStationSelect}
             onStationDeselect={handleStationDeselect}
             onDistrictSelect={handleDistrictSelect}
-            onFareInfo={handleFareInfo} // Passed onFareInfo callback
-            userState={userState} // Pass current user state
+            onFareInfo={handleFareInfo}
+            userState={userState}
+            setUserState={setUserState}
           />
         </div>
 
-        {/* SceneContainer occupies the bottom 30% of the viewport */}
-        {showSceneContainer && sceneCenter && (
-          <div style={{ height: "30vh", transition: "all 0.5s ease-in-out" }}>
-            <SceneContainer center={sceneCenter} />
-          </div>
-        )}
-
-        {/* Additional Components */}
         <PulseStrip className="pulse-strip" />
       </main>
 
-      {/* MotionMenu is rendered based on fareInfo state */}
       {fareInfo && (
         <MotionMenu fareInfo={fareInfo} onContinue={handleMotionMenuContinue} />
       )}
@@ -141,11 +112,5 @@ function App() {
     </div>
   );
 }
-
-// Removed App.propTypes as App does not receive props
-// App.propTypes = {
-//   user: PropTypes.object,
-//   loading: PropTypes.bool,
-// };
 
 export default App;
