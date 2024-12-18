@@ -22,7 +22,7 @@ import PropTypes from "prop-types";
 
 import "./MapContainer.css";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours";
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 const mapId = "94527c02bbb6243";
 const libraries = ["geometry", "places"];
 const containerStyle = { width: "100%", height: "100vh" };
@@ -70,13 +70,13 @@ const MapContainer = ({
   const [viewBarText, setViewBarText] = useState("Stations near me");
 
   // Scene container bottom sheet minimized or expanded
+  // Visible only on SELECTED_DEPARTURE state
   const [sceneMinimized, setSceneMinimized] = useState(false);
 
   const currentView = viewHistory[viewHistory.length - 1];
 
-  const showSceneContainer =
-    userState === USER_STATES.SELECTED_DEPARTURE ||
-    userState === USER_STATES.SELECTED_ARRIVAL;
+  // Show scene only on SELECTED_DEPARTURE, hidden otherwise
+  const showSceneContainer = userState === USER_STATES.SELECTED_DEPARTURE;
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
@@ -149,7 +149,7 @@ const MapContainer = ({
   const navigateToView = useCallback(
     (view) => {
       if (!map) {
-        console.warn("Map not ready, cannot navigate.");
+        console.warn("Map not ready.");
         return;
       }
       setViewHistory((prev) => [...prev, view]);
@@ -241,7 +241,7 @@ const MapContainer = ({
   ]);
 
   const handleHomeClick = useCallback(() => {
-    // "View all stations" only changes the view, not the user state
+    // "View all stations" only changes the view
     navigateToView(CITY_VIEW);
     minimizeScene();
   }, [navigateToView, minimizeScene]);
@@ -258,6 +258,7 @@ const MapContainer = ({
           stationName: station.place,
         });
         setUserState(USER_STATES.SELECTED_DEPARTURE);
+        // Show scene container since now selected departure
         expandScene();
       } else if (userState === USER_STATES.SELECTING_ARRIVAL) {
         setDestinationStation(station);
@@ -294,11 +295,12 @@ const MapContainer = ({
   }, [navigateToView, setUserState, minimizeScene]);
 
   const handleChooseDestination = useCallback(() => {
-    // Only changes user state from SELECTED_DEPARTURE to SELECTING_ARRIVAL
+    // From SELECTED_DEPARTURE to SELECTING_ARRIVAL
     navigateToView(CITY_VIEW);
     setUserState(USER_STATES.SELECTING_ARRIVAL);
     setDestinationStation(null);
     setDirections(null);
+    // Hide scene container since user now is selecting arrival
     minimizeScene();
     if (onStationDeselect) onStationDeselect();
   }, [navigateToView, onStationDeselect, setUserState, minimizeScene]);
@@ -390,8 +392,7 @@ const MapContainer = ({
       });
 
       if (onDistrictSelect) onDistrictSelect(district);
-      setViewBarText(district.name); // show actual district name
-      // District selection does not change userState
+      setViewBarText(district.name);
     },
     [map, navigateToView, stations, onDistrictSelect]
   );
@@ -481,22 +482,15 @@ const MapContainer = ({
     );
   }
 
+  // Scene container visible only on SELECTED_DEPARTURE state
   const sceneVisibleClass =
     showSceneContainer && !sceneMinimized ? "visible" : "minimized";
 
   return (
     <div className="map-container">
       <ViewBar
-        departure={
-          userState === USER_STATES.SELECTED_DEPARTURE
-            ? departureStation?.place
-            : null
-        }
-        arrival={
-          userState === USER_STATES.SELECTED_ARRIVAL
-            ? destinationStation?.place
-            : null
-        }
+        departure={null} // Hide departure text line from viewbar
+        arrival={null} // Hide arrival text line from viewbar
         viewBarText={viewBarText}
         onHome={handleHomeClick}
         onLocateMe={locateMe}
@@ -522,7 +516,6 @@ const MapContainer = ({
           />
         )}
 
-        {/* If in SELECTED_DEPARTURE state, show a "Choose Destination" button here */}
         {userState === USER_STATES.SELECTED_DEPARTURE && (
           <button
             className="choose-destination-button-lower"
@@ -533,7 +526,7 @@ const MapContainer = ({
           </button>
         )}
 
-        {showSceneContainer && (departureStation || destinationStation) && (
+        {showSceneContainer && departureStation && (
           <div className={`scene-wrapper ${sceneVisibleClass}`}>
             <div className="scene-container-header">
               <button
@@ -546,11 +539,7 @@ const MapContainer = ({
               </button>
             </div>
             <SceneContainer
-              center={
-                userState === USER_STATES.SELECTED_DEPARTURE
-                  ? departureStation.position
-                  : destinationStation.position
-              }
+              center={departureStation.position} // always center on departure station
             />
           </div>
         )}

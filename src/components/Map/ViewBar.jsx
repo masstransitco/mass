@@ -20,28 +20,13 @@ const ViewBar = ({
 
   return (
     <div className="view-bar">
-      {/* Locate Me button (hidden if MeView) */}
       {!isMeView && <LocateMe onLocateMe={onLocateMe} />}
 
       <div className="view-bar-center">
         <div className="view-bar-title-pill">
-          {/* Title text now black and always visible */}
           <h2>{viewBarText}</h2>
         </div>
-
-        <div className="view-bar-info">
-          {/* Show departure and arrival info without clear buttons here */}
-          {departure && (
-            <div className="departure-info">
-              <span style={{ color: "#000" }}>Departure: {departure}</span>
-            </div>
-          )}
-          {arrival && (
-            <div className="arrival-info">
-              <span style={{ color: "#000" }}>Arrival: {arrival}</span>
-            </div>
-          )}
-        </div>
+        {/* Removed departure and arrival info lines here */}
       </div>
 
       <div className="view-bar-actions">

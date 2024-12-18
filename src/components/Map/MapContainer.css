@@ -15,7 +15,7 @@
   z-index: 999;
 }
 
-/* Lower panel to hold info boxes and scene container bottom sheet */
+/* Lower panel to hold info boxes, choose destination button and scene container bottom sheet */
 .lower-panel {
   position: absolute;
   left: 10px;
@@ -27,7 +27,6 @@
   z-index: 998;
 }
 
-/* InfoBox containers appear above the map control but below viewbar */
 .info-box-container {
   position: relative;
   display: flex;
@@ -35,7 +34,23 @@
   gap: 10px;
 }
 
-/* Scene wrapper acts as bottom sheet */
+/* The choose destination button styling */
+.choose-destination-button-lower {
+  background-color: #2171ec;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.9em;
+  cursor: pointer;
+  text-align: center;
+}
+
+.choose-destination-button-lower:hover {
+  background-color: #195db7;
+}
+
+/* Scene wrapper acts as bottom sheet, 40% of viewport height when visible */
 .scene-wrapper {
   position: relative;
   background: #fff;
@@ -43,19 +58,18 @@
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   transition: height 0.3s ease, transform 0.3s ease;
+  /* hidden by default unless visible */
+  height: 0;
 }
 
-/* When visible and expanded, scene container takes up about 30vh */
 .scene-wrapper.visible {
-  height: 30vh;
+  height: 40vh; /* 40% of viewport height */
 }
 
-/* Minimized state: show a small handle area */
 .scene-wrapper.minimized {
-  height: 40px; /* Just a small bar */
+  height: 40px; /* minimized state - just a small bar */
 }
 
-/* Scene container header with toggle button */
 .scene-container-header {
   display: flex;
   justify-content: center;
@@ -73,21 +87,17 @@
   text-decoration: underline;
 }
 
-/* The .scene-map inside .scene-wrapper takes full available height */
+/* Adjust scene-map height considering header space */
 .scene-container .scene-map {
   width: 100%;
-  height: calc(100% - 40px); /* subtract header height if needed */
+  height: calc(100% - 40px);
 }
 
-/* Responsive Adjustments */
 @media (max-width: 767px) {
-  /* Mobile-first: The layout is already friendly.
-     Info boxes and scene container appear at bottom,
-     Viewbar at top centered, no overlap. */
+  /* Mobile-first: already optimized for small screens */
 }
 
 @media (min-width: 768px) {
-  /* On larger screens, we can position lower-panel more to the side if desired */
   .lower-panel {
     left: 10px;
     right: auto;
