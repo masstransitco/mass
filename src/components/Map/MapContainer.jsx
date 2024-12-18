@@ -12,13 +12,15 @@ import ViewBar from "./ViewBar";
 import InfoBox from "./InfoBox";
 import UserOverlay from "./UserOverlay";
 import UserCircles from "./UserCircles";
-import DistrictMarkers from "./DistrictMarkers";
-import StationMarkers from "./StationMarkers";
+import DistrictMarkersRaw from "./DistrictMarkers";
+import StationMarkersRaw from "./StationMarkers";
 import SceneContainer from "../Scene/SceneContainer";
+import MotionMenu from "../Menu/MotionMenu"; // Import the MotionMenu for SELECTED_ARRIVAL bottom sheet
 
 import useFetchGeoJSON from "../../hooks/useFetchGeoJSON";
 import useMapGestures from "../../hooks/useMapGestures";
 import PropTypes from "prop-types";
+import ReactMemo from "react";
 
 import "./MapContainer.css";
 
@@ -52,6 +54,10 @@ const PEAK_HOURS = [
   { start: 18, end: 20 },
 ];
 
+// Memoized Markers for performance
+const DistrictMarkers = React.memo(DistrictMarkersRaw);
+const StationMarkers = React.memo(StationMarkersRaw);
+
 const MapContainer = ({
   onStationSelect,
   onStationDeselect,
@@ -74,8 +80,12 @@ const MapContainer = ({
 
   const currentView = viewHistory[viewHistory.length - 1];
 
-  // Show scene only on SELECTED_DEPARTURE
+  // SceneContainer visible only on SELECTED_DEPARTURE
   const showSceneContainer = userState === USER_STATES.SELECTED_DEPARTURE;
+
+  // MotionMenu bottom sheet visible only on SELECTED_ARRIVAL
+  const showMotionMenu =
+    userState === USER_STATES.SELECTED_ARRIVAL && destinationStation;
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
@@ -171,6 +181,7 @@ const MapContainer = ({
           setViewBarText("Stations near me");
           break;
         case "DriveView":
+          // On DriveView we have route info from directions
           break;
         default:
           setViewBarText("");
@@ -256,11 +267,13 @@ const MapContainer = ({
           stationName: station.place,
         });
         setUserState(USER_STATES.SELECTED_DEPARTURE);
+        // Show scene container since now selected departure
         expandScene();
       } else if (userState === USER_STATES.SELECTING_ARRIVAL) {
         setDestinationStation(station);
         setUserState(USER_STATES.SELECTED_ARRIVAL);
-        expandScene();
+        // On SELECTED_ARRIVAL, we will hide scene container and show MotionMenu bottom sheet
+        // No call to expandScene here since scene container is replaced by motion menu
         navigateToDriveView();
       }
     },
@@ -286,6 +299,7 @@ const MapContainer = ({
   const handleClearArrival = useCallback(() => {
     setDestinationStation(null);
     setDirections(null);
+    // On clearing arrival, revert to SELECTING_DEPARTURE
     setUserState(USER_STATES.SELECTING_DEPARTURE);
     navigateToView(CITY_VIEW);
     minimizeScene();
@@ -293,13 +307,15 @@ const MapContainer = ({
 
   const handleChooseDestination = useCallback(() => {
     // From SELECTED_DEPARTURE to SELECTING_ARRIVAL
+    // Do NOT remove departure station. Keep departure infobox visible.
     navigateToView(CITY_VIEW);
     setUserState(USER_STATES.SELECTING_ARRIVAL);
-    setDestinationStation(null);
-    setDirections(null);
+    // Do not clear departure station here
+    // just entering SELECTING_ARRIVAL so user can pick arrival
+    // minimize scene since we no longer show scene container in SELECTING_ARRIVAL
     minimizeScene();
-    if (onStationDeselect) onStationDeselect();
-  }, [navigateToView, onStationDeselect, setUserState, minimizeScene]);
+    // onStationDeselect not needed here since we keep departure selected
+  }, [navigateToView, setUserState, minimizeScene]);
 
   const locateMe = useCallback(() => {
     setDirections(null);
@@ -350,84 +366,83 @@ const MapContainer = ({
 
   const inMeView = currentView.name === "MeView";
 
-  const baseFilteredStations = useMemo(() => {
-    if (!inMeView || !userLocation) return stations;
-    return stations.filter((st) => computeDistance(st.position) <= 1000);
-  }, [inMeView, userLocation, stations, computeDistance]);
-
-  const handleDistrictClick = useCallback(
-    (district) => {
-      if (!map) {
-        console.warn("Map not ready.");
-        return;
-      }
-
-      const stationsInDistrict = stations.filter(
-        (st) =>
-          st.district &&
-          st.district.trim().toLowerCase() ===
-            district.name.trim().toLowerCase()
-      );
-
-      const bounds = new window.google.maps.LatLngBounds();
-      stationsInDistrict.forEach((st) => bounds.extend(st.position));
-      if (stationsInDistrict.length === 0) {
-        bounds.extend(district.position);
-      }
-
-      map.fitBounds(bounds);
-      map.setTilt(45);
-
-      navigateToView({
-        name: "DistrictView",
-        center: map.getCenter().toJSON(),
-        zoom: map.getZoom(),
-        tilt: 45,
-        heading: map.getHeading() || 0,
-        districtName: district.name,
-      });
-
-      if (onDistrictSelect) onDistrictSelect(district);
-      setViewBarText(district.name);
-    },
-    [map, navigateToView, stations, onDistrictSelect]
-  );
-
-  const onLoadMap = useCallback((mapInstance) => {
-    setMap(mapInstance);
-  }, []);
+  // Marker visibility logic:
+  // CityView: only districts
+  // MeView, DistrictView, StationView, DriveView: stations visible
+  // StationView: only selected station’s marker
+  // DriveView: only departure & arrival station markers
+  // SELECTING_ARRIVAL: departure station + all stations (so user can pick arrival)
 
   const displayedStations = useMemo(() => {
+    // If CityView: only districts shown, no stations
     if (currentView.name === "CityView") {
-      return districts;
+      // no stations in cityview scenario
+      return [];
     }
 
     let filtered = baseFilteredStations;
 
-    if (currentView.name === "DistrictView" && currentView.districtName) {
-      const normalizedName = currentView.districtName.trim().toLowerCase();
-      filtered = filtered.filter(
-        (st) =>
-          st.district && st.district.trim().toLowerCase() === normalizedName
-      );
+    // DistrictView: show all stations
+    if (currentView.name === "DistrictView") {
+      // Show all stations in district
+      if (currentView.districtName) {
+        const normalizedName = currentView.districtName.trim().toLowerCase();
+        filtered = stations.filter(
+          (st) =>
+            st.district && st.district.trim().toLowerCase() === normalizedName
+        );
+      } else {
+        filtered = stations;
+      }
     }
 
-    switch (userState) {
-      case USER_STATES.SELECTING_DEPARTURE:
-        if (currentView.name === "CityView") {
-          return districts;
-        }
-        return filtered;
-      case USER_STATES.SELECTED_DEPARTURE:
-        return [departureStation];
-      case USER_STATES.SELECTING_ARRIVAL:
-        return [departureStation, destinationStation].filter(Boolean);
-      case USER_STATES.SELECTED_ARRIVAL:
-      case USER_STATES.DISPLAY_FARE:
-        return [departureStation, destinationStation].filter(Boolean);
-      default:
-        return filtered;
+    // MeView: show all stations (filtered by proximity)
+    if (currentView.name === "MeView") {
+      // filtered is already proximity filtered
     }
+
+    // StationView: only selected station’s marker
+    if (currentView.name === "StationView") {
+      if (departureStation) return [departureStation];
+      if (destinationStation) return [destinationStation];
+      return [];
+    }
+
+    // DriveView: only departure & arrival station markers
+    if (currentView.name === "DriveView") {
+      return [departureStation, destinationStation].filter(Boolean);
+    }
+
+    // For SELECTING_ARRIVAL state, user must pick arrival from all stations
+    // Show departureStation + all stations so user can pick arrival
+    if (userState === USER_STATES.SELECTING_ARRIVAL) {
+      return [departureStation, ...stations].filter(Boolean);
+    }
+
+    // SELECTED_DEPARTURE: show departure station only
+    if (userState === USER_STATES.SELECTED_DEPARTURE) {
+      return [departureStation].filter(Boolean);
+    }
+
+    // SELECTING_DEPARTURE default to stations if not cityview?
+    if (userState === USER_STATES.SELECTING_DEPARTURE) {
+      if (currentView.name === "CityView") {
+        // cityview means no stations displayed, only districts
+        return [];
+      }
+      // In selecting departure (not yet chosen), show all stations
+      return stations;
+    }
+
+    // SELECTED_ARRIVAL or DISPLAY_FARE: departure & arrival
+    if (
+      userState === USER_STATES.SELECTED_ARRIVAL ||
+      userState === USER_STATES.DISPLAY_FARE
+    ) {
+      return [departureStation, destinationStation].filter(Boolean);
+    }
+
+    return filtered;
   }, [
     currentView,
     userState,
@@ -435,7 +450,6 @@ const MapContainer = ({
     destinationStation,
     baseFilteredStations,
     stations,
-    districts,
   ]);
 
   const directionsOptions = useMemo(
@@ -453,8 +467,10 @@ const MapContainer = ({
   useEffect(() => {
     if (map && stations.length > 0 && districts.length > 0) {
       const bounds = new window.google.maps.LatLngBounds();
-      stations.forEach((station) => bounds.extend(station.position));
-      districts.forEach((district) => bounds.extend(district.position));
+      stations.forEach((station) => station && bounds.extend(station.position));
+      districts.forEach(
+        (district) => district && bounds.extend(district.position)
+      );
       map.fitBounds(bounds);
     }
   }, [map, stations, districts]);
@@ -481,11 +497,17 @@ const MapContainer = ({
   const sceneVisibleClass =
     showSceneContainer && !sceneMinimized ? "visible" : "minimized";
 
+  // For MotionMenu bottom sheet on SELECTED_ARRIVAL state:
+  // This bottom sheet replaces scene container bottom sheet
+  // On SELECTED_ARRIVAL, show MotionMenu bottom sheet with same 40% vh and "Choose departure time" button
+  const showMotionMenuSheet =
+    userState === USER_STATES.SELECTED_ARRIVAL && destinationStation;
+
   return (
     <div className="map-container">
       <ViewBar
-        departure={null}
-        arrival={null}
+        departure={null} // no departure text line
+        arrival={null} // no arrival text line
         viewBarText={viewBarText}
         onHome={handleHomeClick}
         onLocateMe={locateMe}
@@ -521,7 +543,7 @@ const MapContainer = ({
           </button>
         )}
 
-        {showSceneContainer && departureStation && (
+        {showSceneContainer && departureStation && !showMotionMenuSheet && (
           <div className={`scene-wrapper ${sceneVisibleClass}`}>
             <div className="scene-container-header">
               <button
@@ -534,6 +556,24 @@ const MapContainer = ({
               </button>
             </div>
             <SceneContainer center={departureStation.position} />
+          </div>
+        )}
+
+        {showMotionMenuSheet && (
+          <div className="scene-wrapper visible" style={{ height: "40vh" }}>
+            {/* MotionMenu bottom sheet with driving info, time, distance, fare */}
+            <MotionMenu
+              departureStation={departureStation}
+              arrivalStation={destinationStation}
+              directions={directions}
+              onContinue={() => {
+                // "Choose departure time"
+                console.log("User pressed Choose departure time");
+                // Future logic here
+              }}
+              buttonText="Choose departure time"
+              calculateFare={calculateFare}
+            />
           </div>
         )}
       </div>
@@ -597,6 +637,7 @@ const MapContainer = ({
           </>
         )}
 
+        {/* CityView: only districts */}
         {currentView.name === "CityView" && (
           <DistrictMarkers
             districts={districts}
