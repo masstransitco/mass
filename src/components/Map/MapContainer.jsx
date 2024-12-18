@@ -16,6 +16,8 @@ import UserCircles from "./UserCircles";
 import DistrictMarkers from "./DistrictMarkers";
 import StationMarkers from "./StationMarkers";
 
+import SceneContainer from "../Scene/SceneContainer";
+
 import useFetchGeoJSON from "../../hooks/useFetchGeoJSON";
 import useMapGestures from "../../hooks/useMapGestures";
 
