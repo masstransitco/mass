@@ -36,9 +36,7 @@ const SceneContainer = ({ center }) => {
 
   useEffect(() => {
     if (!isMapsLoaded || loadError || !center || !mapRef.current) return;
-    // Set center with altitude 150
-    // and restrict bounds to Hong Kong lat-lng
-    // Hong Kong approx bounds: north:22.58, south:22.15, west:113.8, east:114.5
+    // Set center with altitude 150 and HK bounds
     const hkBounds = {
       north: 22.58,
       south: 22.15,
@@ -46,12 +44,11 @@ const SceneContainer = ({ center }) => {
       east: 114.5,
     };
 
-    // Set attributes/properties directly on element
     mapRef.current.bounds = hkBounds;
     mapRef.current.center = {
       lat: center.lat,
       lng: center.lng,
-      altitude: 150, // altitude in meters
+      altitude: 150,
     };
   }, [isMapsLoaded, loadError, center]);
 
