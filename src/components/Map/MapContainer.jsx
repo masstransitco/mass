@@ -20,6 +20,8 @@ import StationMarkers from "./StationMarkers";
 import useFetchGeoJSON from "../../hooks/useFetchGeoJSON";
 import useMapGestures from "../../hooks/useMapGestures";
 
+import PropTypes from "prop-types"; // Added PropTypes import
+
 import "./MapContainer.css";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // Replace with your actual API key
@@ -289,18 +291,7 @@ const MapContainer = ({
     if (onStationDeselect) onStationDeselect();
   }, [navigateToView, onStationDeselect]);
 
-  const handleMotionMenuContinue = useCallback(() => {
-    // Handle the "Continue" button in MotionMenu
-    // Reset the view to CityView and reset state to SELECTING_DEPARTURE
-    navigateToView(CITY_VIEW);
-    setUserState(USER_STATES.SELECTING_DEPARTURE);
-    setDepartureStation(null);
-    setDestinationStation(null);
-    setDirections(null);
-    // Removed setFareInfo as it's managed in App.jsx
-    setShowCircles(false);
-    if (onStationDeselect) onStationDeselect();
-  }, [navigateToView, onStationDeselect]);
+  // Removed handleMotionMenuContinue from MapContainer.jsx as it's managed in App.jsx
 
   const locateMe = useCallback(() => {
     // Keep userState as is. If user is in SELECTING_ARRIVAL or DEPARTURE, do not revert.
