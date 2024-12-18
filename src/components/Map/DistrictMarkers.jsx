@@ -12,12 +12,7 @@ const DistrictMarkers = ({ districts, onDistrictClick }) => {
           key={district.id}
           position={district.position}
           title={district.name}
-          onClick={() => onDistrictClick && onDistrictClick(district)}
-          // Optional: Customize marker icon if needed
-          // icon={{
-          //   url: "/path-to-custom-icon.png",
-          //   scaledSize: new window.google.maps.Size(30, 30),
-          // }}
+          onClick={() => onDistrictClick(district)}
         />
       ))}
     </>
@@ -33,9 +28,10 @@ DistrictMarkers.propTypes = {
         lat: PropTypes.number.isRequired,
         lng: PropTypes.number.isRequired,
       }).isRequired,
+      description: PropTypes.string,
     })
   ).isRequired,
   onDistrictClick: PropTypes.func.isRequired,
 };
 
-export default React.memo(DistrictMarkers);
+export default DistrictMarkers;
