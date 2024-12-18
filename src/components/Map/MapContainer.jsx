@@ -23,7 +23,7 @@ import PropTypes from "prop-types";
 
 import "./MapContainer.css";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // Replace with your actual API key
+const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // Use environment variable
 const mapId = "94527c02bbb6243";
 const libraries = ["geometry", "places"];
 const containerStyle = { width: "100%", height: "100vh" };
@@ -55,8 +55,8 @@ const MapContainer = ({
   onStationSelect,
   onStationDeselect,
   onDistrictSelect,
-  onFareInfo, // Added onFareInfo prop
-  userState, // Receive current user state from App.jsx
+  onFareInfo,
+  userState,
 }) => {
   const [map, setMap] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -601,8 +601,8 @@ MapContainer.propTypes = {
   onStationSelect: PropTypes.func.isRequired,
   onStationDeselect: PropTypes.func.isRequired,
   onDistrictSelect: PropTypes.func.isRequired,
-  onFareInfo: PropTypes.func.isRequired, // Added PropTypes
-  userState: PropTypes.string.isRequired, // Added PropTypes
+  onFareInfo: PropTypes.func.isRequired,
+  userState: PropTypes.oneOf(Object.values(USER_STATES)).isRequired,
 };
 
 export default MapContainer;
