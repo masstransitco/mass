@@ -1,11 +1,12 @@
 // src/components/Map/MapContainer.jsx
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useReducer } from "react";
 import {
   GoogleMap,
   useJsApiLoader,
   DirectionsRenderer,
   Polyline,
+  Marker,
 } from "@react-google-maps/api";
 
 import ViewBar from "./ViewBar";
@@ -23,7 +24,7 @@ import PropTypes from "prop-types";
 
 import "./MapContainer.css";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // ⚠️ It's recommended to use environment variables for security
+const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"
 const mapId = "94527c02bbb6243"; // Ensure this is valid
 const libraries = ["geometry", "places"];
 const containerStyle = { width: "100%", height: "100vh" };
@@ -57,36 +58,78 @@ const PEAK_HOURS = [
 const DistrictMarkers = React.memo(DistrictMarkersRaw);
 const StationMarkers = React.memo(StationMarkersRaw);
 
+// Initial state for useReducer
+const initialState = {
+  userState: USER_STATES.SELECTING_DEPARTURE,
+  departureStation: null,
+  destinationStation: null,
+};
+
+// Reducer function to manage state transitions
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "SET_DEPARTURE":
+      console.log(`Action: SET_DEPARTURE, Payload: ${action.payload.place}`);
+      return {
+        ...state,
+        userState: USER_STATES.SELECTED_DEPARTURE,
+        departureStation: action.payload,
+      };
+    case "SET_DESTINATION":
+      console.log(`Action: SET_DESTINATION, Payload: ${action.payload.place}`);
+      return {
+        ...state,
+        userState: USER_STATES.SELECTED_ARRIVAL,
+        destinationStation: action.payload,
+      };
+    case "CHOOSE_DESTINATION":
+      console.log("Action: CHOOSE_DESTINATION");
+      return {
+        ...state,
+        userState: USER_STATES.SELECTING_ARRIVAL,
+      };
+    case "CLEAR_DEPARTURE":
+      console.log("Action: CLEAR_DEPARTURE");
+      return {
+        ...state,
+        userState: USER_STATES.SELECTING_DEPARTURE,
+        departureStation: null,
+        destinationStation: null,
+        directions: null,
+      };
+    case "CLEAR_DESTINATION":
+      console.log("Action: CLEAR_DESTINATION");
+      return {
+        ...state,
+        userState: USER_STATES.SELECTING_ARRIVAL,
+        destinationStation: null,
+        directions: null,
+      };
+    default:
+      console.warn(`Unhandled action type: ${action.type}`);
+      return state;
+  }
+};
+
 const MapContainer = ({
   onStationSelect,
   onStationDeselect,
   onDistrictSelect,
   onFareInfo,
-  userState,
-  setUserState,
 }) => {
   const [map, setMap] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [directions, setDirections] = useState(null);
   const [viewHistory, setViewHistory] = useState([CITY_VIEW]);
   const [showCircles, setShowCircles] = useState(false);
-  const [departureStation, setDepartureStation] = useState(null);
-  const [destinationStation, setDestinationStation] = useState(null);
   const [viewBarText, setViewBarText] = useState("Stations near me");
 
   // Scene container bottom sheet minimized or expanded
   const [sceneMinimized, setSceneMinimized] = useState(false);
 
-  const currentView = viewHistory[viewHistory.length - 1];
-
-  // SceneContainer visible only on SELECTED_DEPARTURE
-  const showSceneContainer = userState === USER_STATES.SELECTED_DEPARTURE;
-
-  // MotionMenu bottom sheet visible only on SELECTED_ARRIVAL
-  const showMotionMenu =
-    userState === USER_STATES.SELECTED_ARRIVAL &&
-    destinationStation &&
-    directions;
+  // useReducer for managing userState, departureStation, destinationStation
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { userState, departureStation, destinationStation } = state;
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
@@ -200,10 +243,12 @@ const MapContainer = ({
   // Minimize and expand scene container
   const minimizeScene = useCallback(() => {
     setSceneMinimized(true);
+    console.log("SceneContainer minimized.");
   }, []);
 
   const expandScene = useCallback(() => {
     setSceneMinimized(false);
+    console.log("SceneContainer expanded.");
   }, []);
 
   // Handle navigation to DriveView
@@ -221,10 +266,7 @@ const MapContainer = ({
           setDirections(result);
           const route = result.routes[0]?.legs[0];
           if (!route) return;
-          const fare = calculateFare(
-            route.distance.value,
-            route.duration.value
-          );
+          const fare = calculateFare(route.distance.value, route.duration.value);
           setViewBarText(
             `Distance: ${fare.distanceKm} km | Est Time: ${fare.estTime}`
           );
@@ -245,6 +287,7 @@ const MapContainer = ({
             },
             zoom: 13,
           });
+          console.log("Navigated to DriveView with directions.");
         } else {
           console.error(`Error fetching directions: ${status}`);
         }
@@ -264,16 +307,14 @@ const MapContainer = ({
     navigateToView(CITY_VIEW);
     minimizeScene();
     // Do NOT change userState here to maintain SELECTED_DEPARTURE
-    console.log(
-      "Home button clicked. Navigated to CityView without altering userState."
-    );
+    console.log("Home button clicked. Navigated to CityView without altering userState.");
   }, [navigateToView, minimizeScene]);
 
   // Handle station selection
   const handleStationSelection = useCallback(
     (station) => {
       if (userState === USER_STATES.SELECTING_DEPARTURE) {
-        setDepartureStation(station);
+        dispatch({ type: "SET_DEPARTURE", payload: station });
         if (onStationSelect) onStationSelect(station);
         navigateToView({
           name: "StationView",
@@ -281,15 +322,11 @@ const MapContainer = ({
           zoom: STATION_VIEW_ZOOM,
           stationName: station.place,
         });
-        setUserState(USER_STATES.SELECTED_DEPARTURE);
-        console.log(`Selected departure station: ${station.place}`);
-        // Show SceneContainer since a departure station is selected
+        console.log(`Navigated to StationView for departure station: ${station.place}`);
         expandScene();
       } else if (userState === USER_STATES.SELECTING_ARRIVAL) {
-        setDestinationStation(station);
-        setUserState(USER_STATES.SELECTED_ARRIVAL);
-        console.log(`Selected arrival station: ${station.place}`);
-        // Navigate to DriveView
+        dispatch({ type: "SET_DESTINATION", payload: station });
+        console.log(`Navigated to DriveView for arrival station: ${station.place}`);
         navigateToDriveView();
       }
     },
@@ -298,49 +335,38 @@ const MapContainer = ({
       navigateToView,
       navigateToDriveView,
       onStationSelect,
-      setUserState,
       expandScene,
     ]
   );
 
   // Handle clearing the departure station
   const handleClearDeparture = useCallback(() => {
-    setDepartureStation(null);
-    setDirections(null);
-    setUserState(USER_STATES.SELECTING_DEPARTURE);
+    dispatch({ type: "CLEAR_DEPARTURE" });
     if (onStationDeselect) onStationDeselect();
     navigateToView(CITY_VIEW);
     minimizeScene();
-    console.log("Cleared departure station. Reverted to SELECTING_DEPARTURE.");
-  }, [navigateToView, onStationDeselect, setUserState, minimizeScene]);
+    console.log("Cleared departure station and navigated to CityView.");
+  }, [navigateToView, onStationDeselect, minimizeScene]);
 
   // Handle clearing the arrival station
   const handleClearArrival = useCallback(() => {
-    setDestinationStation(null);
-    setDirections(null);
-    setUserState(USER_STATES.SELECTING_DEPARTURE);
+    dispatch({ type: "CLEAR_DESTINATION" });
     navigateToView(CITY_VIEW);
     minimizeScene();
-    console.log("Cleared arrival station. Reverted to SELECTING_DEPARTURE.");
-  }, [navigateToView, setUserState, minimizeScene]);
+    console.log("Cleared arrival station and navigated to CityView.");
+  }, [navigateToView, minimizeScene]);
 
   // Handle choosing destination
   const handleChooseDestination = useCallback(() => {
     console.log("Choose Destination pressed. Current state:", userState);
     // Transition from SELECTED_DEPARTURE to SELECTING_ARRIVAL
     navigateToView(CITY_VIEW);
-    setUserState(USER_STATES.SELECTING_ARRIVAL); // ✅ Correct state
-    console.log(
-      "State after choosing destination:",
-      USER_STATES.SELECTING_ARRIVAL
-    );
-    // Keep departure station selected and visible
-    // Do not clear departure station here
-    // Minimize SceneContainer since it's not needed in SELECTING_ARRIVAL
+    dispatch({ type: "CHOOSE_DESTINATION" });
+    console.log("Dispatched CHOOSE_DESTINATION action.");
     minimizeScene();
     console.log("Minimized SceneContainer.");
     // No need to call onStationDeselect since departure remains selected
-  }, [navigateToView, setUserState, minimizeScene, userState]);
+  }, [navigateToView, dispatch, minimizeScene, userState]);
 
   // Handle user location (Locate Me)
   const locateMe = useCallback(() => {
@@ -370,10 +396,12 @@ const MapContainer = ({
 
   useEffect(() => {
     console.log("User state changed:", userState);
-    if (map && userState === USER_STATES.SELECTING_DEPARTURE && !userLocation) {
-      console.log(
-        "Triggering locateMe due to userState being SELECTING_DEPARTURE and no userLocation."
-      );
+    if (
+      map &&
+      userState === USER_STATES.SELECTING_DEPARTURE &&
+      !userLocation
+    ) {
+      console.log("Triggering locateMe due to userState being SELECTING_DEPARTURE and no userLocation.");
       locateMe();
     }
   }, [map, locateMe, userState, userLocation]);
@@ -466,7 +494,8 @@ const MapContainer = ({
         const normalizedName = currentView.districtName.trim().toLowerCase();
         filtered = stations.filter(
           (st) =>
-            st.district && st.district.trim().toLowerCase() === normalizedName
+            st.district &&
+            st.district.trim().toLowerCase() === normalizedName
         );
       } else {
         filtered = stations;
@@ -562,7 +591,8 @@ const MapContainer = ({
     );
   }
 
-  if (!isLoaded) return <div className="loading-message">Loading map...</div>;
+  if (!isLoaded)
+    return <div className="loading-message">Loading map...</div>;
 
   if (stationsLoading || districtsLoading)
     return <div className="loading-message">Loading map data...</div>;
@@ -576,7 +606,9 @@ const MapContainer = ({
   }
 
   const sceneVisibleClass =
-    showSceneContainer && !sceneMinimized ? "visible" : "minimized";
+    (userState === USER_STATES.SELECTED_DEPARTURE) && !sceneMinimized
+      ? "visible"
+      : "minimized";
 
   return (
     <div className="map-container">
@@ -619,7 +651,7 @@ const MapContainer = ({
         )}
 
         {/* SceneContainer bottom sheet */}
-        {showSceneContainer && departureStation && !showMotionMenu && (
+        {userState === USER_STATES.SELECTED_DEPARTURE && departureStation && (
           <div className={`scene-wrapper ${sceneVisibleClass}`}>
             <div className="scene-container-header">
               <button
@@ -636,8 +668,7 @@ const MapContainer = ({
         )}
 
         {/* MotionMenu bottom sheet */}
-        {showMotionMenu &&
-          departureStation &&
+        {userState === USER_STATES.SELECTED_ARRIVAL &&
           destinationStation &&
           directions && (
             <div className="scene-wrapper visible" style={{ height: "40vh" }}>
@@ -741,8 +772,6 @@ MapContainer.propTypes = {
   onStationDeselect: PropTypes.func.isRequired,
   onDistrictSelect: PropTypes.func.isRequired,
   onFareInfo: PropTypes.func.isRequired,
-  userState: PropTypes.oneOf(Object.values(USER_STATES)).isRequired,
-  setUserState: PropTypes.func.isRequired,
 };
 
 export default MapContainer;
