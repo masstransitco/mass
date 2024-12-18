@@ -2,13 +2,12 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
-
-import "./SceneContainer.css"; // Import CSS for animations
+import "./SceneContainer.css";
 
 const SceneContainer = ({ center }) => {
   const [isMapsLoaded, setIsMapsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
-  const mapRef = useRef(null); // Reference to the gmp-map-3d element
+  const mapRef = useRef(null);
 
   useEffect(() => {
     if (window.google && window.google.maps) {
@@ -37,10 +36,8 @@ const SceneContainer = ({ center }) => {
 
   useEffect(() => {
     if (!isMapsLoaded || loadError || !center || !mapRef.current) return;
-
-    const mapElement = mapRef.current;
     const { lat, lng } = center;
-    mapElement.setAttribute("center", `${lat},${lng}`);
+    mapRef.current.setAttribute("center", `${lat},${lng}`);
   }, [isMapsLoaded, loadError, center]);
 
   if (loadError) {
