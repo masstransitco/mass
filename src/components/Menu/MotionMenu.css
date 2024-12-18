@@ -1,7 +1,7 @@
 /* src/components/Menu/MotionMenu.css */
 
 .motion-menu-container {
-  position: absolute; /* changed to absolute if needed, or can remain fixed if you want */
+  position: absolute; /* Ensures it overlays correctly within the bottom sheet */
   bottom: 0;
   left: 0;
   width: 100%;
@@ -11,7 +11,7 @@
   z-index: 1000;
   transform: translateY(100%);
   transition: transform 0.5s ease-in-out;
-  height: 100%; /* The parent (.scene-wrapper) controls the height (40vh). */
+  height: 100%; /* Controlled by parent container (40vh) */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;

@@ -13,19 +13,25 @@ const MotionMenu = ({
   onContinue,
   buttonText,
 }) => {
-  // If we don't have directions or stations, we cannot display fare info
-  if (!directions || !departureStation || !arrivalStation) return null;
+  // Extract route from directions
+  const route = useMemo(() => directions?.routes[0]?.legs[0], [directions]);
 
-  // Extract distance and duration from directions
-  const route = directions.routes[0]?.legs[0];
-  if (!route) return null;
-
+  // Calculate fareInfo using useMemo
   const fareInfo = useMemo(() => {
+    if (!route) return null;
     const { distance, duration } = route; // distance.value in meters, duration.value in seconds
     return calculateFare(distance.value, duration.value);
   }, [route, calculateFare]);
 
-  if (!fareInfo) return null;
+  // Early return if data is missing
+  if (
+    !directions ||
+    !departureStation ||
+    !arrivalStation ||
+    !route ||
+    !fareInfo
+  )
+    return null;
 
   return (
     <div className="motion-menu-container visible">
@@ -51,7 +57,7 @@ MotionMenu.propTypes = {
       lng: PropTypes.number.isRequired,
     }).isRequired,
     district: PropTypes.string,
-  }),
+  }).isRequired,
   arrivalStation: PropTypes.shape({
     place: PropTypes.string.isRequired,
     position: PropTypes.shape({
@@ -59,15 +65,15 @@ MotionMenu.propTypes = {
       lng: PropTypes.number.isRequired,
     }).isRequired,
     district: PropTypes.string,
-  }),
+  }).isRequired,
   directions: PropTypes.object, // Google Maps directions result object
   calculateFare: PropTypes.func.isRequired,
   onContinue: PropTypes.func.isRequired,
-  buttonText: PropTypes.string.isRequired,
+  buttonText: PropTypes.string, // Button text, default to "Choose departure time"
 };
 
 MotionMenu.defaultProps = {
-  buttonText: "Choose departure time", // Default button text
+  buttonText: "Choose departure time",
 };
 
 export default MotionMenu;
