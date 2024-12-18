@@ -191,6 +191,8 @@ const MapContainer = ({
         default:
           setViewBarText("");
       }
+
+      console.log(`Navigated to ${view.name}`);
     },
     [map]
   );
@@ -262,6 +264,9 @@ const MapContainer = ({
     navigateToView(CITY_VIEW);
     minimizeScene();
     // Do NOT change userState here to maintain SELECTED_DEPARTURE
+    console.log(
+      "Home button clicked. Navigated to CityView without altering userState."
+    );
   }, [navigateToView, minimizeScene]);
 
   // Handle station selection
@@ -277,11 +282,13 @@ const MapContainer = ({
           stationName: station.place,
         });
         setUserState(USER_STATES.SELECTED_DEPARTURE);
+        console.log(`Selected departure station: ${station.place}`);
         // Show SceneContainer since a departure station is selected
         expandScene();
       } else if (userState === USER_STATES.SELECTING_ARRIVAL) {
         setDestinationStation(station);
         setUserState(USER_STATES.SELECTED_ARRIVAL);
+        console.log(`Selected arrival station: ${station.place}`);
         // Navigate to DriveView
         navigateToDriveView();
       }
@@ -304,6 +311,7 @@ const MapContainer = ({
     if (onStationDeselect) onStationDeselect();
     navigateToView(CITY_VIEW);
     minimizeScene();
+    console.log("Cleared departure station. Reverted to SELECTING_DEPARTURE.");
   }, [navigateToView, onStationDeselect, setUserState, minimizeScene]);
 
   // Handle clearing the arrival station
@@ -313,19 +321,26 @@ const MapContainer = ({
     setUserState(USER_STATES.SELECTING_DEPARTURE);
     navigateToView(CITY_VIEW);
     minimizeScene();
+    console.log("Cleared arrival station. Reverted to SELECTING_DEPARTURE.");
   }, [navigateToView, setUserState, minimizeScene]);
 
   // Handle choosing destination
   const handleChooseDestination = useCallback(() => {
+    console.log("Choose Destination pressed. Current state:", userState);
     // Transition from SELECTED_DEPARTURE to SELECTING_ARRIVAL
     navigateToView(CITY_VIEW);
     setUserState(USER_STATES.SELECTING_ARRIVAL); // ✅ Correct state
+    console.log(
+      "State after choosing destination:",
+      USER_STATES.SELECTING_ARRIVAL
+    );
     // Keep departure station selected and visible
     // Do not clear departure station here
     // Minimize SceneContainer since it's not needed in SELECTING_ARRIVAL
     minimizeScene();
+    console.log("Minimized SceneContainer.");
     // No need to call onStationDeselect since departure remains selected
-  }, [navigateToView, setUserState, minimizeScene]);
+  }, [navigateToView, setUserState, minimizeScene, userState]);
 
   // Handle user location (Locate Me)
   const locateMe = useCallback(() => {
@@ -346,6 +361,7 @@ const MapContainer = ({
           });
           setShowCircles(true);
           minimizeScene();
+          console.log("User location found and navigated to MeView.");
         },
         (error) => console.error("Location error:", error)
       );
@@ -353,7 +369,11 @@ const MapContainer = ({
   }, [map, navigateToView, minimizeScene]);
 
   useEffect(() => {
+    console.log("User state changed:", userState);
     if (map && userState === USER_STATES.SELECTING_DEPARTURE && !userLocation) {
+      console.log(
+        "Triggering locateMe due to userState being SELECTING_DEPARTURE and no userLocation."
+      );
       locateMe();
     }
   }, [map, locateMe, userState, userLocation]);
@@ -419,6 +439,7 @@ const MapContainer = ({
 
       if (onDistrictSelect) onDistrictSelect(district);
       setViewBarText(district.name);
+      console.log(`District clicked: ${district.name}`);
     },
     [map, navigateToView, stations, onDistrictSelect]
   );
@@ -426,6 +447,7 @@ const MapContainer = ({
   // Handle map load
   const onLoadMap = useCallback((mapInstance) => {
     setMap(mapInstance);
+    console.log("Map loaded.");
   }, []);
 
   // Determine which stations to display based on current view and user state
@@ -521,8 +543,16 @@ const MapContainer = ({
         (district) => district && bounds.extend(district.position)
       );
       map.fitBounds(bounds);
+      console.log("Map bounds adjusted to include all stations and districts.");
     }
   }, [map, stations, districts]);
+
+  // Debugging Logs for userState and Stations
+  useEffect(() => {
+    console.log("Current userState:", userState);
+    console.log("Departure Station:", departureStation);
+    console.log("Destination Station:", destinationStation);
+  }, [userState, departureStation, destinationStation]);
 
   if (loadError) {
     return (
@@ -533,8 +563,10 @@ const MapContainer = ({
   }
 
   if (!isLoaded) return <div className="loading-message">Loading map...</div>;
+
   if (stationsLoading || districtsLoading)
     return <div className="loading-message">Loading map data...</div>;
+
   if (stationsError || districtsError) {
     return (
       <div className="error-message">
