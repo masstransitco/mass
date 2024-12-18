@@ -3,9 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
 
-const SceneContainer = ({ selectedStation, selectedDistrict }) => {
-  const [geojson, setGeojson] = useState(null);
-  const [currentPlace, setCurrentPlace] = useState(null);
+const SceneContainer = ({ center }) => {
   const [isMapsLoaded, setIsMapsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
   const mapRef = useRef(null); // Reference to the gmp-map-3d element
@@ -21,76 +19,27 @@ const SceneContainer = ({ selectedStation, selectedDistrict }) => {
         }
       }, 1000);
 
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         if (!isMapsLoaded) {
           setLoadError("Google Maps API failed to load.");
           clearInterval(interval);
         }
       }, 10000);
 
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
     }
   }, [isMapsLoaded]);
 
   useEffect(() => {
-    if (selectedStation) {
-      setCurrentPlace({
-        coordinates: [
-          selectedStation.position.lng,
-          selectedStation.position.lat,
-        ],
-        name: selectedStation.place,
-      });
-    } else if (selectedDistrict) {
-      setCurrentPlace({
-        coordinates: [
-          selectedDistrict.position.lng,
-          selectedDistrict.position.lat,
-        ],
-        name: selectedDistrict.name,
-      });
-    } else {
-      setCurrentPlace(null);
-    }
-  }, [selectedStation, selectedDistrict]);
-
-  useEffect(() => {
-    const fetchGeojson = async () => {
-      try {
-        const response = await fetch("/stations.geojson");
-        const data = await response.json();
-        setGeojson(data);
-      } catch (error) {
-        console.error("Error fetching GeoJSON file:", error);
-      }
-    };
-    fetchGeojson();
-  }, []);
-
-  useEffect(() => {
-    if (!isMapsLoaded) return;
-    if (loadError) {
-      console.error("Error loading Google Maps API:", loadError);
-      return;
-    }
-
-    if (!currentPlace) {
-      console.warn("No place data available to initialize the 3D map.");
-      return;
-    }
+    if (!isMapsLoaded || loadError || !center || !mapRef.current) return;
 
     const mapElement = mapRef.current;
-    if (mapElement) {
-      const [lng, lat] = currentPlace.coordinates;
-      mapElement.setAttribute("center", `${lat},${lng}`);
-      mapElement.setAttribute("tilt", "67.5");
-      mapElement.setAttribute("heading", "0");
-      mapElement.setAttribute("altitude", "1000");
-      mapElement.setAttribute("range", "1500");
-    } else {
-      console.error("gmp-map-3d element not found.");
-    }
-  }, [isMapsLoaded, loadError, currentPlace]);
+    const { lat, lng } = center;
+    mapElement.setAttribute("center", `${lat},${lng}`);
+  }, [isMapsLoaded, loadError, center]);
 
   if (loadError) {
     return <p>Error loading Google Maps API.</p>;
@@ -102,43 +51,22 @@ const SceneContainer = ({ selectedStation, selectedDistrict }) => {
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
-      {geojson ? (
-        geojson.features && geojson.features.length > 0 ? (
-          <gmp-map-3d
-            id="three-d-map"
-            ref={mapRef}
-            style={{ height: "100%", width: "100%" }}
-            default-labels-disabled
-          ></gmp-map-3d>
-        ) : (
-          <p>No data available.</p>
-        )
-      ) : (
-        <p>Loading station data...</p>
-      )}
+      <gmp-map-3d
+        id="three-d-map"
+        ref={mapRef}
+        style={{ height: "100%", width: "100%" }}
+        default-labels-disabled
+        default-ui-disabled // Added to disable default UI
+      ></gmp-map-3d>
     </div>
   );
 };
 
 SceneContainer.propTypes = {
-  selectedStation: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    place: PropTypes.string.isRequired,
-    position: PropTypes.shape({
-      lat: PropTypes.number.isRequired,
-      lng: PropTypes.number.isRequired,
-    }).isRequired,
-    district: PropTypes.string.isRequired,
-  }),
-  selectedDistrict: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    position: PropTypes.shape({
-      lat: PropTypes.number.isRequired,
-      lng: PropTypes.number.isRequired,
-    }).isRequired,
-    description: PropTypes.string,
-  }),
+  center: PropTypes.shape({
+    lat: PropTypes.number.isRequired,
+    lng: PropTypes.number.isRequired,
+  }).isRequired,
 };
 
 export default React.memo(SceneContainer);
