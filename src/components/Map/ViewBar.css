@@ -1,31 +1,33 @@
 /* src/components/Map/ViewBar.css */
 
-/* ViewBar Container */
 .view-bar {
-  position: absolute;
-  top: 10px;
-  left: 5px;
-  transform: translateX(-50%);
   display: flex;
-  flex-direction: row; /* Changed to row for better alignment */
+  flex-direction: row;
   align-items: center;
   background-color: rgba(255, 255, 255, 0.95);
   padding: 8px 16px;
-  border-radius: 50px; /* Fully rounded corners */
+  border-radius: 50px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 10;
-  width: 90vw;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 0.9em; /* Slightly smaller font */
-  font-weight: 400; /* Regular weight */
+  font-size: 0.9em;
+  font-weight: 400;
+  width: 90vw;
+  max-width: 600px;
+  z-index: 10;
 }
 
-/* Pill-Shaped Title Container */
+.view-bar-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
 .view-bar-title-pill {
   background-color: #f0f0f0;
   border-radius: 9999px;
   padding: 4px 12px;
-  margin: 0 16px; /* Adjusted margin for spacing */
+  margin: 0 16px;
   color: #333;
 }
 
@@ -35,11 +37,11 @@
   font-weight: 400;
 }
 
-/* Departure and Arrival Information */
 .view-bar-info {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  margin-top: 5px;
 }
 
 .departure-info,
@@ -52,7 +54,7 @@
 .clear-button {
   background: none;
   border: none;
-  color: #d9534f; /* Red color for clear buttons */
+  color: #d9534f;
   cursor: pointer;
   font-size: 0.8em;
   text-decoration: underline;
@@ -62,15 +64,13 @@
   color: #c9302c;
 }
 
-/* Actions Container */
 .view-bar-actions {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-left: auto; /* Push actions to the right */
+  margin-left: auto;
 }
 
-/* Choose Destination Button */
 .choose-destination-button {
   background-color: #2171ec;
   border: none;
@@ -86,7 +86,6 @@
   background-color: #195db7;
 }
 
-/* View All Stations Button */
 .view-all-stations-button {
   background: none;
   border: 2px solid #2171ec;
@@ -103,19 +102,14 @@
   color: #fff;
 }
 
-/* Responsive Adjustments */
 @media (max-width: 767px) {
+  /* Mobile-first approach: ensure the locate me and title remain in row */
   .view-bar {
-    flex-direction: column; /* Stack vertically on small screens */
+    flex-direction: row;
     align-items: center;
   }
 
-  .view-bar-title-pill {
-    margin: 8px 0;
-  }
-
-  .view-bar-actions {
-    margin-left: 0;
-    margin-top: 8px;
+  .view-bar-info {
+    margin-top: 5px;
   }
 }

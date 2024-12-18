@@ -23,7 +23,6 @@ import PropTypes from "prop-types";
 
 import "./MapContainer.css";
 
-// Load API key from environment variables for security
 const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours";
 const mapId = "94527c02bbb6243";
 const libraries = ["geometry", "places"];
@@ -73,19 +72,24 @@ const MapContainer = ({
 
   const currentView = viewHistory[viewHistory.length - 1];
 
+  // Show SceneContainer if in SELECTED_DEPARTURE or SELECTED_ARRIVAL
+  const showSceneContainer =
+    userState === USER_STATES.SELECTED_DEPARTURE ||
+    userState === USER_STATES.SELECTED_ARRIVAL;
+
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     libraries,
   });
 
   const {
-    data: stationsData,
+    data: stationsData = [],
     loading: stationsLoading,
     error: stationsError,
   } = useFetchGeoJSON("/stations.geojson");
 
   const {
-    data: districtsData,
+    data: districtsData = [],
     loading: districtsLoading,
     error: districtsError,
   } = useFetchGeoJSON("/districts.geojson");
@@ -145,7 +149,7 @@ const MapContainer = ({
   const navigateToView = useCallback(
     (view) => {
       if (!map) {
-        console.warn("Map not ready, cannot navigate to view yet.");
+        console.warn("Map not ready, cannot navigate.");
         return;
       }
       setViewHistory((prev) => [...prev, view]);
@@ -168,7 +172,7 @@ const MapContainer = ({
           setViewBarText("Stations near me");
           break;
         case "DriveView":
-          // Time and distance set after directions are fetched
+          // After directions fetched
           break;
         default:
           setViewBarText("");
@@ -191,10 +195,7 @@ const MapContainer = ({
           setDirections(result);
           const route = result.routes[0]?.legs[0];
           if (!route) return;
-          const fare = calculateFare(
-            route.distance.value,
-            route.duration.value
-          );
+          const fare = calculateFare(route.distance.value, route.duration.value);
           setViewBarText(
             `Distance: ${fare.distanceKm} km | Est Time: ${fare.estTime}`
           );
@@ -228,7 +229,7 @@ const MapContainer = ({
     destinationStation,
     calculateFare,
     navigateToView,
-    onFareInfo,
+    onFareInfo
   ]);
 
   const handleHomeClick = useCallback(() => {
@@ -244,7 +245,7 @@ const MapContainer = ({
   const handleStationSelection = useCallback(
     (station) => {
       if (userState === USER_STATES.SELECTING_DEPARTURE) {
-        // Selecting departure station
+        // Selecting departure
         setDepartureStation(station);
         if (onStationSelect) onStationSelect(station);
         navigateToView({
@@ -252,8 +253,9 @@ const MapContainer = ({
           center: station.position,
           zoom: STATION_VIEW_ZOOM,
         });
+        setUserState(USER_STATES.SELECTED_DEPARTURE);
       } else if (userState === USER_STATES.SELECTING_ARRIVAL) {
-        // Selecting arrival station
+        // Selecting arrival
         setDestinationStation(station);
         setUserState(USER_STATES.DISPLAY_FARE);
         navigateToDriveView();
@@ -284,7 +286,6 @@ const MapContainer = ({
   }, [navigateToView, setUserState]);
 
   const handleChooseDestination = useCallback(() => {
-    // Transition from SELECTED_DEPARTURE to SELECTING_ARRIVAL
     navigateToView(CITY_VIEW);
     setUserState(USER_STATES.SELECTING_ARRIVAL);
     setDestinationStation(null);
@@ -298,10 +299,7 @@ const MapContainer = ({
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const userPos = {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          };
+          const userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
           setUserLocation(userPos);
           navigateToView({
             name: "MeView",
@@ -316,7 +314,6 @@ const MapContainer = ({
   }, [map, navigateToView]);
 
   useEffect(() => {
-    // Initially locate user if SELECTING_DEPARTURE and no location known
     if (map && userState === USER_STATES.SELECTING_DEPARTURE && !userLocation) {
       locateMe();
     }
@@ -326,10 +323,7 @@ const MapContainer = ({
     (pos) => {
       if (!userLocation || !window.google?.maps?.geometry?.spherical)
         return Infinity;
-      const userLatLng = new window.google.maps.LatLng(
-        userLocation.lat,
-        userLocation.lng
-      );
+      const userLatLng = new window.google.maps.LatLng(userLocation.lat, userLocation.lng);
       const stationLatLng = new window.google.maps.LatLng(pos.lat, pos.lng);
       return window.google.maps.geometry.spherical.computeDistanceBetween(
         userLatLng,
@@ -342,6 +336,7 @@ const MapContainer = ({
   const inMeView = currentView.name === "MeView";
 
   const baseFilteredStations = useMemo(() => {
+    // On MeView, always show stations (within 1000m if needed)
     if (!inMeView || !userLocation) return stations;
     return stations.filter((st) => computeDistance(st.position) <= 1000);
   }, [inMeView, userLocation, stations, computeDistance]);
@@ -356,8 +351,7 @@ const MapContainer = ({
       const stationsInDistrict = stations.filter(
         (st) =>
           st.district &&
-          st.district.trim().toLowerCase() ===
-            district.name.trim().toLowerCase()
+          st.district.trim().toLowerCase() === district.name.trim().toLowerCase()
       );
 
       const bounds = new window.google.maps.LatLngBounds();
@@ -379,6 +373,7 @@ const MapContainer = ({
         districtName: district.name,
       });
 
+      // Selecting a district does NOT change user state
       if (onDistrictSelect) onDistrictSelect(district);
 
       setViewBarText("All Districts");
@@ -391,8 +386,9 @@ const MapContainer = ({
   }, []);
 
   const displayedStations = useMemo(() => {
+    // On CityView: Only districts (no stations)
     if (currentView.name === "CityView") {
-      return districts; // Show districts at CityView
+      return districts;
     }
 
     let filtered = baseFilteredStations;
@@ -407,7 +403,7 @@ const MapContainer = ({
 
     switch (userState) {
       case USER_STATES.SELECTING_DEPARTURE:
-        // Show districts or stations depending on view
+        // On CityView we show districts, else show filtered stations
         if (currentView.name === "CityView") {
           return districts;
         }
@@ -472,10 +468,7 @@ const MapContainer = ({
   }
 
   return (
-    <div
-      className="map-container"
-      style={{ position: "relative", width: "100%", height: "100vh" }}
-    >
+    <div className="map-container" style={{ position: "relative", width: "100%", height: "100vh" }}>
       <ViewBar
         departure={
           userState === USER_STATES.SELECTED_DEPARTURE
@@ -499,7 +492,8 @@ const MapContainer = ({
         isStationView={userState === USER_STATES.SELECTED_DEPARTURE}
       />
 
-      <div className="info-box-container">
+      {/* InfoBoxes and SceneContainer area */}
+      <div className="lower-panel"> 
         {departureStation && (
           <InfoBox
             type="Departure"
@@ -514,6 +508,23 @@ const MapContainer = ({
             location={destinationStation.place}
             onClear={handleClearArrival}
           />
+        )}
+
+        {showSceneContainer && (
+          <div className="scene-wrapper">
+            {/* scenecontainer appear in SELECTED_DEPARTURE or SELECTED_ARRIVAL state */}
+            {/* Ensure to pass the station position as center if station is selected */}
+            {(userState === USER_STATES.SELECTED_DEPARTURE && departureStation) ||
+            (userState === USER_STATES.SELECTED_ARRIVAL && destinationStation) ? (
+              <SceneContainer
+                center={
+                  userState === USER_STATES.SELECTED_DEPARTURE
+                    ? departureStation.position
+                    : destinationStation.position
+                }
+              />
+            ) : null}
+          </div>
         )}
       </div>
 
@@ -546,18 +557,12 @@ const MapContainer = ({
         )}
 
         {userLocation && (
-          <UserOverlay
-            userLocation={userLocation}
-            mapHeading={map?.getHeading() || 0}
-          />
+          <UserOverlay userLocation={userLocation} mapHeading={map?.getHeading() || 0} />
         )}
 
         {directions && (
           <>
-            <DirectionsRenderer
-              directions={directions}
-              options={directionsOptions}
-            />
+            <DirectionsRenderer directions={directions} options={directionsOptions} />
             {directions.routes.map((route, routeIndex) =>
               route.legs.map((leg, legIndex) =>
                 leg.steps.map((step, stepIndex) => (
@@ -577,17 +582,11 @@ const MapContainer = ({
         )}
 
         {currentView.name === "CityView" && (
-          <DistrictMarkers
-            districts={districts}
-            onDistrictClick={handleDistrictClick}
-          />
+          <DistrictMarkers districts={districts} onDistrictClick={handleDistrictClick} />
         )}
 
         {currentView.name !== "CityView" && (
-          <StationMarkers
-            stations={displayedStations}
-            onStationClick={handleStationSelection}
-          />
+          <StationMarkers stations={displayedStations} onStationClick={handleStationSelection} />
         )}
       </GoogleMap>
     </div>
@@ -600,7 +599,7 @@ MapContainer.propTypes = {
   onDistrictSelect: PropTypes.func.isRequired,
   onFareInfo: PropTypes.func.isRequired,
   userState: PropTypes.oneOf(Object.values(USER_STATES)).isRequired,
-  setUserState: PropTypes.func.isRequired, // Now required since we rely on it
+  setUserState: PropTypes.func.isRequired,
 };
 
 export default MapContainer;
