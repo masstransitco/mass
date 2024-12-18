@@ -28,13 +28,14 @@
   border-radius: 9999px;
   padding: 4px 12px;
   margin: 0 16px;
-  color: #333;
+  color: #000; /* Make sure text is black */
 }
 
 .view-bar-title-pill h2 {
   margin: 0;
   font-size: 1em;
   font-weight: 400;
+  color: #000; /* Ensure title text is black */
 }
 
 .view-bar-info {
@@ -49,19 +50,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.clear-button {
-  background: none;
-  border: none;
-  color: #d9534f;
-  cursor: pointer;
-  font-size: 0.8em;
-  text-decoration: underline;
-}
-
-.clear-button:hover {
-  color: #c9302c;
+  color: #000; /* Ensure info text is black as well */
 }
 
 .view-bar-actions {
@@ -69,21 +58,6 @@
   align-items: center;
   gap: 10px;
   margin-left: auto;
-}
-
-.choose-destination-button {
-  background-color: #2171ec;
-  border: none;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 0.9em;
-  transition: background-color 0.3s ease;
-}
-
-.choose-destination-button:hover {
-  background-color: #195db7;
 }
 
 .view-all-stations-button {
@@ -103,7 +77,7 @@
 }
 
 @media (max-width: 767px) {
-  /* Mobile-first approach: ensure the locate me and title remain in row */
+  /* Mobile-first: The layout already ensures row alignment */
   .view-bar {
     flex-direction: row;
     align-items: center;

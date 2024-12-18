@@ -1,6 +1,5 @@
 /* src/components/Map/MapContainer.css */
 
-/* Mobile-first layout: ensure viewbar is centered at the top */
 .map-container {
   position: relative;
   width: 100%;
@@ -8,7 +7,6 @@
   overflow: hidden;
 }
 
-/* Place viewbar at top, horizontally centered */
 .view-bar {
   position: absolute;
   top: 10px;
@@ -17,26 +15,19 @@
   z-index: 999;
 }
 
-/* InfoBox and SceneContainer appear below the viewbar */
+/* Lower panel to hold info boxes and scene container bottom sheet */
 .lower-panel {
   position: absolute;
-  top: 60px; /* Enough space below viewbar */
   left: 10px;
   right: 10px;
-  z-index: 998;
+  bottom: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  z-index: 998;
 }
 
-/* SceneContainer wrapper */
-.scene-wrapper {
-  position: relative;
-  height: 30vh;
-  margin-top: 10px;
-}
-
-/* InfoBox styling adjustments */
+/* InfoBox containers appear above the map control but below viewbar */
 .info-box-container {
   position: relative;
   display: flex;
@@ -44,24 +35,62 @@
   gap: 10px;
 }
 
-/* Ensure no overlap with scene container */
-.scene-container {
+/* Scene wrapper acts as bottom sheet */
+.scene-wrapper {
   position: relative;
-  width: 100%;
-  height: 100%;
   background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  transition: height 0.3s ease, transform 0.3s ease;
 }
 
+/* When visible and expanded, scene container takes up about 30vh */
+.scene-wrapper.visible {
+  height: 30vh;
+}
+
+/* Minimized state: show a small handle area */
+.scene-wrapper.minimized {
+  height: 40px; /* Just a small bar */
+}
+
+/* Scene container header with toggle button */
+.scene-container-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
+  background: #f0f0f0;
+}
+
+.toggle-scene-button {
+  background: none;
+  border: none;
+  color: #2171ec;
+  font-size: 0.9em;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* The .scene-map inside .scene-wrapper takes full available height */
+.scene-container .scene-map {
+  width: 100%;
+  height: calc(100% - 40px); /* subtract header height if needed */
+}
+
+/* Responsive Adjustments */
 @media (max-width: 767px) {
-  /* On mobile: viewbar and elements remain in a row but scaled down if needed */
-  /* No changes needed here as the structure is already mobile-first */
+  /* Mobile-first: The layout is already friendly.
+     Info boxes and scene container appear at bottom,
+     Viewbar at top centered, no overlap. */
 }
 
 @media (min-width: 768px) {
-  /* On larger screens, ensure layout scales appropriately */
+  /* On larger screens, we can position lower-panel more to the side if desired */
   .lower-panel {
     left: 10px;
     right: auto;
-    width: 300px; /* fixed width on larger screens if desired */
+    width: 320px;
   }
 }

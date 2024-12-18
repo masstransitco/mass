@@ -2,19 +2,15 @@
 
 import React from "react";
 import PropTypes from "prop-types";
-import LocateMe from "./LocateMe"; // Import LocateMe component
+import LocateMe from "./LocateMe";
 import "./ViewBar.css";
 
 const ViewBar = ({
   departure,
   arrival,
   viewBarText,
-  onClearDeparture,
-  onClearArrival,
-  showChooseDestination,
-  onChooseDestination,
   onHome,
-  onLocateMe, // Added onLocateMe prop
+  onLocateMe,
   isMeView,
   isDistrictView,
   isStationView,
@@ -24,57 +20,31 @@ const ViewBar = ({
 
   return (
     <div className="view-bar">
-      {/* Left: Locate Me Button (visible except on MeView) */}
+      {/* Locate Me button (hidden if MeView) */}
       {!isMeView && <LocateMe onLocateMe={onLocateMe} />}
 
-      {/* Center: Title and Info */}
       <div className="view-bar-center">
-        {/* Pill-shaped Title Container */}
         <div className="view-bar-title-pill">
+          {/* Title text now black and always visible */}
           <h2>{viewBarText}</h2>
         </div>
 
-        {/* Departure and Arrival Information */}
         <div className="view-bar-info">
+          {/* Show departure and arrival info without clear buttons here */}
           {departure && (
             <div className="departure-info">
-              <span>Departure: {departure}</span>
-              <button
-                onClick={onClearDeparture}
-                className="clear-button"
-                aria-label="Clear Departure"
-              >
-                Clear
-              </button>
+              <span style={{ color: "#000" }}>Departure: {departure}</span>
             </div>
           )}
           {arrival && (
             <div className="arrival-info">
-              <span>Arrival: {arrival}</span>
-              <button
-                onClick={onClearArrival}
-                className="clear-button"
-                aria-label="Clear Arrival"
-              >
-                Clear
-              </button>
+              <span style={{ color: "#000" }}>Arrival: {arrival}</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Right: Actions */}
       <div className="view-bar-actions">
-        {showChooseDestination && (
-          <button
-            onClick={onChooseDestination}
-            className="choose-destination-button"
-            aria-label="Choose Destination"
-          >
-            Choose Destination
-          </button>
-        )}
-
         {showViewAllStations && (
           <button
             onClick={onHome}
@@ -93,12 +63,8 @@ ViewBar.propTypes = {
   departure: PropTypes.string,
   arrival: PropTypes.string,
   viewBarText: PropTypes.string.isRequired,
-  onClearDeparture: PropTypes.func.isRequired,
-  onClearArrival: PropTypes.func.isRequired,
-  showChooseDestination: PropTypes.bool.isRequired,
-  onChooseDestination: PropTypes.func.isRequired,
   onHome: PropTypes.func.isRequired,
-  onLocateMe: PropTypes.func.isRequired, // Added to PropTypes
+  onLocateMe: PropTypes.func.isRequired,
   isMeView: PropTypes.bool.isRequired,
   isDistrictView: PropTypes.bool.isRequired,
   isStationView: PropTypes.bool.isRequired,
