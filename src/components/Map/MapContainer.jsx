@@ -191,7 +191,10 @@ const MapContainer = ({
           setDirections(result);
           const route = result.routes[0]?.legs[0];
           if (!route) return;
-          const fare = calculateFare(route.distance.value, route.duration.value);
+          const fare = calculateFare(
+            route.distance.value,
+            route.duration.value
+          );
           setViewBarText(
             `Distance: ${fare.distanceKm} km | Est Time: ${fare.estTime}`
           );
@@ -225,7 +228,7 @@ const MapContainer = ({
     destinationStation,
     calculateFare,
     navigateToView,
-    onFareInfo
+    onFareInfo,
   ]);
 
   const handleHomeClick = useCallback(() => {
@@ -256,7 +259,13 @@ const MapContainer = ({
         navigateToDriveView();
       }
     },
-    [userState, navigateToView, navigateToDriveView, onStationSelect, setUserState]
+    [
+      userState,
+      navigateToView,
+      navigateToDriveView,
+      onStationSelect,
+      setUserState,
+    ]
   );
 
   const handleClearDeparture = useCallback(() => {
@@ -317,7 +326,10 @@ const MapContainer = ({
     (pos) => {
       if (!userLocation || !window.google?.maps?.geometry?.spherical)
         return Infinity;
-      const userLatLng = new window.google.maps.LatLng(userLocation.lat, userLocation.lng);
+      const userLatLng = new window.google.maps.LatLng(
+        userLocation.lat,
+        userLocation.lng
+      );
       const stationLatLng = new window.google.maps.LatLng(pos.lat, pos.lng);
       return window.google.maps.geometry.spherical.computeDistanceBetween(
         userLatLng,
@@ -344,7 +356,8 @@ const MapContainer = ({
       const stationsInDistrict = stations.filter(
         (st) =>
           st.district &&
-          st.district.trim().toLowerCase() === district.name.trim().toLowerCase()
+          st.district.trim().toLowerCase() ===
+            district.name.trim().toLowerCase()
       );
 
       const bounds = new window.google.maps.LatLngBounds();
@@ -415,7 +428,7 @@ const MapContainer = ({
     destinationStation,
     baseFilteredStations,
     stations,
-    districts
+    districts,
   ]);
 
   const directionsOptions = useMemo(
@@ -459,13 +472,20 @@ const MapContainer = ({
   }
 
   return (
-    <div className="map-container" style={{ position: "relative", width: "100%", height: "100vh" }}>
+    <div
+      className="map-container"
+      style={{ position: "relative", width: "100%", height: "100vh" }}
+    >
       <ViewBar
         departure={
-          userState === USER_STATES.SELECTED_DEPARTURE ? departureStation?.place : null
+          userState === USER_STATES.SELECTED_DEPARTURE
+            ? departureStation?.place
+            : null
         }
         arrival={
-          userState === USER_STATES.SELECTED_ARRIVAL ? destinationStation?.place : null
+          userState === USER_STATES.SELECTED_ARRIVAL
+            ? destinationStation?.place
+            : null
         }
         viewBarText={viewBarText}
         onClearDeparture={handleClearDeparture}
