@@ -10,7 +10,7 @@ import {
 
 import ViewBar from "./ViewBar";
 import InfoBox from "./InfoBox";
-import MotionMenu from "../Menu/MotionMenu";
+// Removed import of MotionMenu to prevent duplicate rendering
 import UserOverlay from "./UserOverlay";
 import UserCircles from "./UserCircles";
 
@@ -52,6 +52,7 @@ const MapContainer = ({
   onStationSelect,
   onStationDeselect,
   onDistrictSelect,
+  onFareInfo, // Added onFareInfo prop
 }) => {
   const [map, setMap] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -60,7 +61,7 @@ const MapContainer = ({
   const [showCircles, setShowCircles] = useState(false);
   const [departureStation, setDepartureStation] = useState(null);
   const [destinationStation, setDestinationStation] = useState(null);
-  const [fareInfo, setFareInfo] = useState(null);
+  // Removed fareInfo state as it's managed in App.jsx
   const [userState, setUserState] = useState(USER_STATES.SELECTING_DEPARTURE);
   const [viewBarText, setViewBarText] = useState("Stations near me");
 
@@ -194,10 +195,13 @@ const MapContainer = ({
             route.distance.value,
             route.duration.value
           );
-          setFareInfo(fare);
           setViewBarText(
             `Distance: ${fare.distanceKm} km | Est Time: ${fare.estTime}`
           );
+
+          if (onFareInfo) {
+            onFareInfo(fare); // Pass fareInfo up to App.jsx
+          }
 
           navigateToView({
             name: "DriveView",
@@ -215,6 +219,7 @@ const MapContainer = ({
     destinationStation,
     calculateFare,
     navigateToView,
+    onFareInfo,
   ]);
 
   const handleHomeClick = useCallback(() => {
@@ -222,7 +227,7 @@ const MapContainer = ({
     setDepartureStation(null);
     setDestinationStation(null);
     setDirections(null);
-    setFareInfo(null);
+    // Removed setFareInfo as it's managed in App.jsx
     setShowCircles(false);
     // Reset user state back to SELECTING_DEPARTURE
     setUserState(USER_STATES.SELECTING_DEPARTURE);
@@ -259,7 +264,7 @@ const MapContainer = ({
   const handleClearDeparture = useCallback(() => {
     setDepartureStation(null);
     setDirections(null);
-    setFareInfo(null);
+    // Removed setFareInfo as it's managed in App.jsx
     setUserState(USER_STATES.SELECTING_DEPARTURE);
     if (onStationDeselect) onStationDeselect();
     navigateToView(CITY_VIEW);
@@ -268,7 +273,7 @@ const MapContainer = ({
   const handleClearArrival = useCallback(() => {
     setDestinationStation(null);
     setDirections(null);
-    setFareInfo(null);
+    // Removed setFareInfo as it's managed in App.jsx
     setUserState(USER_STATES.SELECTING_ARRIVAL);
     navigateToView(CITY_VIEW);
   }, [navigateToView]);
@@ -280,7 +285,7 @@ const MapContainer = ({
     setUserState(USER_STATES.SELECTING_ARRIVAL);
     setDestinationStation(null);
     setDirections(null);
-    setFareInfo(null);
+    // Removed setFareInfo as it's managed in App.jsx
     if (onStationDeselect) onStationDeselect();
   }, [navigateToView, onStationDeselect]);
 
@@ -292,7 +297,7 @@ const MapContainer = ({
     setDepartureStation(null);
     setDestinationStation(null);
     setDirections(null);
-    setFareInfo(null);
+    // Removed setFareInfo as it's managed in App.jsx
     setShowCircles(false);
     if (onStationDeselect) onStationDeselect();
   }, [navigateToView, onStationDeselect]);
@@ -300,7 +305,7 @@ const MapContainer = ({
   const locateMe = useCallback(() => {
     // Keep userState as is. If user is in SELECTING_ARRIVAL or DEPARTURE, do not revert.
     setDirections(null);
-    setFareInfo(null);
+    // Removed setFareInfo as it's managed in App.jsx
     if (!map) return;
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -607,12 +612,15 @@ const MapContainer = ({
           />
         )}
       </GoogleMap>
-
-      {userState === USER_STATES.DISPLAY_FARE && fareInfo && (
-        <MotionMenu fareInfo={fareInfo} onContinue={handleMotionMenuContinue} />
-      )}
     </div>
   );
+};
+
+MapContainer.propTypes = {
+  onStationSelect: PropTypes.func.isRequired,
+  onStationDeselect: PropTypes.func.isRequired,
+  onDistrictSelect: PropTypes.func.isRequired,
+  onFareInfo: PropTypes.func.isRequired, // Added PropTypes
 };
 
 export default MapContainer;
