@@ -23,8 +23,8 @@ import PropTypes from "prop-types";
 
 import "./MapContainer.css";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // Use environment variable for security
-const mapId = "94527c02bbb6243";
+const GOOGLE_MAPS_API_KEY = "AIzaSyA8rDrxBzMRlgbA7BQ2DoY31gEXzZ4Ours"; // ⚠️ It's recommended to use environment variables for security
+const mapId = "94527c02bbb6243"; // Ensure this is valid
 const libraries = ["geometry", "places"];
 const containerStyle = { width: "100%", height: "100vh" };
 const BASE_CITY_CENTER = { lat: 22.236, lng: 114.191 };
@@ -38,7 +38,7 @@ const CITY_VIEW = {
 };
 
 const STATION_VIEW_ZOOM = 18;
-const CIRCLE_DISTANCES = [500, 1000];
+const CIRCLE_DISTANCES = [500, 1000]; // in meters
 
 const USER_STATES = {
   SELECTING_DEPARTURE: "SelectingDeparture",
@@ -84,7 +84,9 @@ const MapContainer = ({
 
   // MotionMenu bottom sheet visible only on SELECTED_ARRIVAL
   const showMotionMenu =
-    userState === USER_STATES.SELECTED_ARRIVAL && destinationStation;
+    userState === USER_STATES.SELECTED_ARRIVAL &&
+    destinationStation &&
+    directions;
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
@@ -135,25 +137,29 @@ const MapContainer = ({
     return PEAK_HOURS.some((p) => hour >= p.start && hour < p.end);
   }, []);
 
+  // Fare calculation logic
   const calculateFare = useCallback(
     (distance, durationInSeconds) => {
-      const baseTaxi = 24;
-      const extraMeters = Math.max(0, distance - 2000);
-      const increments = Math.floor(extraMeters / 200) * 1;
+      const baseTaxi = 24; // Base fare
+      const extraMeters = Math.max(0, distance - 2000); // Assuming first 2000 meters are covered by base fare
+      const increments = Math.floor(extraMeters / 200); // Every additional 200 meters
       const taxiFareEstimate = baseTaxi + increments;
 
       const peak = isPeakHour(new Date());
-      const startingFare = peak ? 65 : 35;
-      const ourFare = Math.max(taxiFareEstimate * 0.7, startingFare);
+      const startingFare = peak ? 65 : 35; // Starting fare based on peak hours
+      const ourFare = Math.max(taxiFareEstimate * 0.7, startingFare); // 70% of taxi fare or starting fare, whichever is higher
+
       const distanceKm = (distance / 1000).toFixed(2);
       const hrs = Math.floor(durationInSeconds / 3600);
       const mins = Math.floor((durationInSeconds % 3600) / 60);
       const estTime = `${hrs > 0 ? hrs + " hr " : ""}${mins} mins`;
+
       return { ourFare, taxiFareEstimate, distanceKm, estTime };
     },
     [isPeakHour]
   );
 
+  // Navigation to different views
   const navigateToView = useCallback(
     (view) => {
       if (!map) {
@@ -180,7 +186,7 @@ const MapContainer = ({
           setViewBarText("Stations near me");
           break;
         case "DriveView":
-          // On DriveView, the viewBarText already set in navigateToDriveView
+          // On DriveView, the viewBarText is set based on directions
           break;
         default:
           setViewBarText("");
@@ -189,6 +195,7 @@ const MapContainer = ({
     [map]
   );
 
+  // Minimize and expand scene container
   const minimizeScene = useCallback(() => {
     setSceneMinimized(true);
   }, []);
@@ -197,6 +204,7 @@ const MapContainer = ({
     setSceneMinimized(false);
   }, []);
 
+  // Handle navigation to DriveView
   const navigateToDriveView = useCallback(() => {
     if (!map || !departureStation || !destinationStation) return;
     const directionsService = new window.google.maps.DirectionsService();
@@ -249,11 +257,14 @@ const MapContainer = ({
     onFareInfo,
   ]);
 
+  // Handle Home button click
   const handleHomeClick = useCallback(() => {
     navigateToView(CITY_VIEW);
     minimizeScene();
+    // Do NOT change userState here to maintain SELECTED_DEPARTURE
   }, [navigateToView, minimizeScene]);
 
+  // Handle station selection
   const handleStationSelection = useCallback(
     (station) => {
       if (userState === USER_STATES.SELECTING_DEPARTURE) {
@@ -266,13 +277,12 @@ const MapContainer = ({
           stationName: station.place,
         });
         setUserState(USER_STATES.SELECTED_DEPARTURE);
-        // Show scene container since now selected departure
+        // Show SceneContainer since a departure station is selected
         expandScene();
       } else if (userState === USER_STATES.SELECTING_ARRIVAL) {
         setDestinationStation(station);
         setUserState(USER_STATES.SELECTED_ARRIVAL);
-        // On SELECTED_ARRIVAL, we will hide scene container and show MotionMenu bottom sheet
-        // No call to expandScene here since scene container is replaced by motion menu
+        // Navigate to DriveView
         navigateToDriveView();
       }
     },
@@ -286,6 +296,7 @@ const MapContainer = ({
     ]
   );
 
+  // Handle clearing the departure station
   const handleClearDeparture = useCallback(() => {
     setDepartureStation(null);
     setDirections(null);
@@ -295,27 +306,28 @@ const MapContainer = ({
     minimizeScene();
   }, [navigateToView, onStationDeselect, setUserState, minimizeScene]);
 
+  // Handle clearing the arrival station
   const handleClearArrival = useCallback(() => {
     setDestinationStation(null);
     setDirections(null);
-    // On clearing arrival, revert to SELECTING_DEPARTURE
     setUserState(USER_STATES.SELECTING_DEPARTURE);
     navigateToView(CITY_VIEW);
     minimizeScene();
   }, [navigateToView, setUserState, minimizeScene]);
 
+  // Handle choosing destination
   const handleChooseDestination = useCallback(() => {
-    // From SELECTED_DEPARTURE to SELECTING_ARRIVAL
-    // Do NOT remove departure station. Keep departure infobox visible.
+    // Transition from SELECTED_DEPARTURE to SELECTING_ARRIVAL
     navigateToView(CITY_VIEW);
-    setUserState(USER_STATES.SELECTING_ARRIVAL);
+    setUserState(USER_STATES.SELECTING_ARRIVAL); // ✅ Correct state
+    // Keep departure station selected and visible
     // Do not clear departure station here
-    // just entering SELECTING_ARRIVAL so user can pick arrival
-    // minimize scene since we no longer show scene container in SELECTING_ARRIVAL
+    // Minimize SceneContainer since it's not needed in SELECTING_ARRIVAL
     minimizeScene();
-    // onStationDeselect not needed here since we keep departure selected
+    // No need to call onStationDeselect since departure remains selected
   }, [navigateToView, setUserState, minimizeScene]);
 
+  // Handle user location (Locate Me)
   const locateMe = useCallback(() => {
     setDirections(null);
     if (!map) return;
@@ -346,6 +358,7 @@ const MapContainer = ({
     }
   }, [map, locateMe, userState, userLocation]);
 
+  // Compute distance from user location to a given position
   const computeDistance = useCallback(
     (pos) => {
       if (!userLocation || !window.google?.maps?.geometry?.spherical)
@@ -365,11 +378,13 @@ const MapContainer = ({
 
   const inMeView = currentView.name === "MeView";
 
+  // Filter stations based on proximity in MeView
   const baseFilteredStations = useMemo(() => {
     if (!inMeView || !userLocation) return stations;
     return stations.filter((st) => computeDistance(st.position) <= 1000);
   }, [inMeView, userLocation, stations, computeDistance]);
 
+  // Handle district click
   const handleDistrictClick = useCallback(
     (district) => {
       if (!map) {
@@ -408,14 +423,16 @@ const MapContainer = ({
     [map, navigateToView, stations, onDistrictSelect]
   );
 
+  // Handle map load
   const onLoadMap = useCallback((mapInstance) => {
     setMap(mapInstance);
   }, []);
 
+  // Determine which stations to display based on current view and user state
   const displayedStations = useMemo(() => {
     // If CityView: only districts shown, no stations
     if (currentView.name === "CityView") {
-      // no stations in cityview scenario
+      // No stations in CityView scenario
       return [];
     }
 
@@ -434,11 +451,6 @@ const MapContainer = ({
       }
     }
 
-    // MeView: already filtered by proximity
-    if (currentView.name === "MeView") {
-      // filtered is already proximity filtered
-    }
-
     // StationView: only selected station’s marker
     if (currentView.name === "StationView") {
       if (departureStation) return [departureStation];
@@ -451,7 +463,7 @@ const MapContainer = ({
       return [departureStation, destinationStation].filter(Boolean);
     }
 
-    // For SELECTING_ARRIVAL state, user can pick arrival from all stations
+    // For SELECTING_ARRIVAL state, show departure station + all stations to pick arrival
     if (userState === USER_STATES.SELECTING_ARRIVAL) {
       return [departureStation, ...stations].filter(Boolean);
     }
@@ -464,7 +476,7 @@ const MapContainer = ({
     // SELECTING_DEPARTURE: show all stations unless in CityView
     if (userState === USER_STATES.SELECTING_DEPARTURE) {
       if (currentView.name === "CityView") {
-        // cityview means no stations displayed, only districts
+        // CityView means no stations displayed, only districts
         return [];
       }
       // In selecting departure (not yet chosen), show all stations
@@ -534,11 +546,6 @@ const MapContainer = ({
   const sceneVisibleClass =
     showSceneContainer && !sceneMinimized ? "visible" : "minimized";
 
-  // For MotionMenu bottom sheet on SELECTED_ARRIVAL state:
-  // This bottom sheet replaces scene container bottom sheet
-  // On SELECTED_ARRIVAL, show MotionMenu bottom sheet with same 40vh and "Choose departure time" button
-  const showMotionMenuSheet = showMotionMenu;
-
   return (
     <div className="map-container">
       <ViewBar
@@ -580,7 +587,7 @@ const MapContainer = ({
         )}
 
         {/* SceneContainer bottom sheet */}
-        {showSceneContainer && departureStation && !showMotionMenuSheet && (
+        {showSceneContainer && departureStation && !showMotionMenu && (
           <div className={`scene-wrapper ${sceneVisibleClass}`}>
             <div className="scene-container-header">
               <button
@@ -597,7 +604,7 @@ const MapContainer = ({
         )}
 
         {/* MotionMenu bottom sheet */}
-        {showMotionMenuSheet &&
+        {showMotionMenu &&
           departureStation &&
           destinationStation &&
           directions && (
