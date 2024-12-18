@@ -5,8 +5,17 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 40vh; /* 40% of screen height */
-  background-color: rgba(255, 255, 255, 0.95); /* Semi-transparent background */
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
-  z-index: 1000; /* Ensure it's above other elements */
+  height: 100%;
+  transform: translateY(100%);
+  transition: transform 0.5s ease-in-out;
+  z-index: 10; /* Ensure it appears above other elements */
+}
+
+.scene-container.visible {
+  transform: translateY(0);
+}
+
+.scene-map {
+  width: 100%;
+  height: 100%;
 }

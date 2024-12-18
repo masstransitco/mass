@@ -3,6 +3,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
 
+import "./SceneContainer.css"; // Import CSS for animations
+
 const SceneContainer = ({ center }) => {
   const [isMapsLoaded, setIsMapsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
@@ -50,13 +52,13 @@ const SceneContainer = ({ center }) => {
   }
 
   return (
-    <div style={{ height: "100%", width: "100%" }}>
+    <div className="scene-container">
       <gmp-map-3d
         id="three-d-map"
         ref={mapRef}
-        style={{ height: "100%", width: "100%" }}
+        className="scene-map"
         default-labels-disabled
-        default-ui-disabled // Added to disable default UI
+        default-ui-disabled
       ></gmp-map-3d>
     </div>
   );
