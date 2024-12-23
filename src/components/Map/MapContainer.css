@@ -3,7 +3,7 @@
 .map-container {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 90%;
   overflow: hidden;
 }
 
@@ -18,17 +18,18 @@
 /* Lower panel to hold info boxes, choose destination button and scene container bottom sheet */
 .lower-panel {
   position: absolute;
-  left: 10px;
-  right: 10px;
+  left: 50%;
   bottom: 10px;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
+  align-items: center; /* Center child components horizontally */
   gap: 10px;
   z-index: 998;
 }
 
 .info-box-container {
-  position: relative;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -36,71 +37,97 @@
 
 /* The choose destination button styling */
 .choose-destination-button-lower {
-  background-color: #2171ec;
-  color: #fff;
+  background-color: #1e90ff; /* Primary Accent: Electric Blue */
+  color: #ffffff; /* Primary Text */
   border: none;
   border-radius: 20px;
-  padding: 8px 16px;
-  font-size: 0.9em;
+  padding: 12px 24px;
+  font-size: 1em;
   cursor: pointer;
   text-align: center;
+  transition: background-color 0.3s ease;
+  width: 80%;
 }
 
 .choose-destination-button-lower:hover {
-  background-color: #195db7;
+  background-color: #1c86ee; /* Primary Accent Hover: Dodger Blue Darker */
 }
 
-/* Scene wrapper acts as bottom sheet, 40% of viewport height when visible */
+/* Scene wrapper as bottom sheet */
 .scene-wrapper {
-  position: relative;
-  background: #fff;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e1e1e; /* Surface Background */
   border-radius: 12px;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  transition: height 0.3s ease, transform 0.3s ease;
-  /* hidden by default unless visible */
-  height: 0;
+  width: 90vw;
+  max-width: 600px;
+  transition: transform 0.3s ease-in-out, height 0.3s ease-in-out;
 }
 
 .scene-wrapper.visible {
-  height: 40vh; /* 40% of viewport height */
+  transform: translateX(-50%) translateY(calc(25vh - 40px)); /* Shift down by scene-container's height */
+  height: calc(25vh);
 }
 
 .scene-wrapper.minimized {
-  height: 40px; /* minimized state - just a small bar */
+  transform: translateX(-50%) translateY(calc(25vh - 40px));
+  height: 40px; /* Height of the header */
 }
 
 .scene-container-header {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 4px;
-  background: #f0f0f0;
+  padding: 8px;
+  background-color: #1e1e1e; /* Surface Background */
+  height: 40px;
+  position: relative;
+  z-index: 2;
 }
 
 .toggle-scene-button {
   background: none;
   border: none;
-  color: #2171ec;
-  font-size: 0.9em;
+  color: #03dac6; /* Secondary Accent: Teal */
+  font-size: 1em;
   cursor: pointer;
   text-decoration: underline;
-}
-
-/* Adjust scene-map height considering header space */
-.scene-container .scene-map {
+  padding: 8px 16px;
+  transition: color 0.3s ease;
   width: 100%;
-  height: calc(100% - 40px);
+  text-align: center;
 }
 
-@media (max-width: 767px) {
-  /* Mobile-first: already optimized for small screens */
+.toggle-scene-button:hover {
+  color: #029a94; /* Secondary Accent Hover: Teal Darker */
 }
 
-@media (min-width: 768px) {
-  .lower-panel {
-    left: 10px;
-    right: auto;
-    width: 320px;
-  }
+/* Scene container */
+.scene-container {
+  width: 100%;
+  height: calc(25vh - 40px);
+  background: #1e1e1e; /* Surface Background */
+  position: relative;
+  z-index: 1;
+}
+
+/* Adjust lower panel to account for scene wrapper */
+.lower-panel {
+  bottom: calc(25vh + 20px); /* Increased gap for better spacing */
+}
+
+/* Error and Loading Messages */
+.error-message,
+.loading-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: #ffffff; /* Primary Text */
+  background-color: #1e1e1e; /* Surface Background */
+  font-size: 1.2em;
 }

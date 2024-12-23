@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: rgba(31, 41, 55, 0.95); /* Lightened dark gray */
   padding: 8px 16px;
   border-radius: 50px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -24,25 +24,24 @@
 }
 
 .view-bar-title-pill {
-  background-color: #f0f0f0;
+  background-color: #1f2937; /* Surface color */
   border-radius: 9999px;
   padding: 4px 12px;
   margin: 0 16px;
-  color: #000; /* Make sure text is black */
+  color: #e5e5e5; /* Off-white text */
 }
 
 .view-bar-title-pill h2 {
   margin: 0;
   font-size: 1em;
   font-weight: 400;
-  color: #000; /* Ensure title text is black */
+  color: #e5e5e5; /* Ensure title text is off-white */
 }
 
 .view-bar-info {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-top: 5px;
 }
 
 .departure-info,
@@ -50,7 +49,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #000; /* Ensure info text is black as well */
+  color: #e5e5e5; /* Ensure info text is off-white */
 }
 
 .view-bar-actions {
@@ -61,29 +60,29 @@
 }
 
 .view-all-stations-button {
-  background: none;
-  border: 2px solid #2171ec;
-  color: #2171ec;
-  padding: 6px 12px;
-  border-radius: 20px;
+  background-color: transparent; /* No background */
+  border: none; /* No border */
+  color: #6ee7b7; /* Soft cyan */
+  padding: 0.6em; /* Increased padding for better touch target */
+  border-radius: 0.5em; /* Rounded corners */
   cursor: pointer;
   font-size: 0.9em;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease;
 }
 
 .view-all-stations-button:hover {
-  background-color: #2171ec;
-  color: #fff;
+  background-color: #1e3a8a; /* Deep blue on hover */
+  color: #fff; /* White text on hover */
 }
 
+/* Media Queries */
 @media (max-width: 767px) {
-  /* Mobile-first: The layout already ensures row alignment */
   .view-bar {
     flex-direction: row;
     align-items: center;
   }
 
   .view-bar-info {
-    margin-top: 5px;
+    margin-top: 0.5em;
   }
 }

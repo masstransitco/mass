@@ -1,0 +1,5 @@
+/* src/components/Map/UserCircles.css */
+
+circle {
+  transition: all 0.3s ease;
+}
